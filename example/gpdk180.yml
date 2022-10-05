@@ -1,0 +1,102 @@
+include:
+  - path: "/opt/pdk/gpdk180_v3.3/models/spectre/gpdk.scs"
+    section: "stat"
+testbench:
+  cl: 5.0e-12
+  i0: 3.0e-6
+  rl: 1.0e8
+  vs: 0.5
+  vdd: 1.8
+  scl: 1.0
+defaults:
+  settling_percentage: 5.0
+  dev: 1.0e-4
+constraints:
+  length:
+    min: 0.18e-6
+    max: 15.0e-6
+    grid: 25.0e-9
+  width:
+    min: 0.22e-6
+    max: 150.0e-6
+    grid: 50.0e-9
+devices:
+  dcop:
+    prefix: "DUT."
+    suffix: ""
+    parameters:
+      - "gm"
+      - "gds"
+      - "id"
+      - "gmoverid"
+      - "fug"
+      - "vdsat"
+      - "vgs"
+      - "vds"
+      - "vbs"
+      - "gmb"
+      - "vth"
+      - "self_gain"
+  dcmatch:
+    NMOS:
+      - prefix: "DUT."
+        suffix: ".dvthn(m).Contribution"
+        reference: "dvth_contrib"
+      - prefix: "DUT."
+        suffix: ".dvthn(m).Sensitivity"
+        reference: "dvth_sens"
+      - prefix: "DUT."
+        suffix: ".toxn(m).Contribution"
+        reference: "tox_contrib"
+      - prefix: "DUT."
+        suffix: ".toxn(m).Sensitivity"
+        reference: "tox_sens"
+      - prefix: "DUT."
+        suffix: ".dxln(m).Contribution"
+        reference: "dxl_contrib"
+      - prefix: "DUT."
+        suffix: ".dxln(m).Sensitivity"
+        reference: "dxl_sens"
+      - prefix: "DUT."
+        suffix: ".dxwn(m).Contribution"
+        reference: "dxw_contrib"
+      - prefix: "DUT."
+        suffix: ".dxwn(m).Sensitivity"
+        reference: "dxw_sens"
+      - prefix: "DUT."
+        suffix: ".hdifn(m).Contribution"
+        reference: "hdif_contrib"
+      - prefix: "DUT."
+        suffix: ".hdifn(m).Sensitivity"
+        reference: "hdif_sens"
+    PMOS:
+      - prefix: "DUT."
+        suffix: ".dvthp(m).Contribution"
+        reference: "dvth_contrib"
+      - prefix: "DUT."
+        suffix: ".dvthp(m).Sensitivity"
+        reference: "dvth_sens"
+      - prefix: "DUT."
+        suffix: ".toxp(m).Contribution"
+        reference: "tox_contrib"
+      - prefix: "DUT."
+        suffix: ".toxp(m).Sensitivity"
+        reference: "tox_sens"
+      - prefix: "DUT."
+        suffix: ".dxlp(m).Contribution"
+        reference: "dxl_contrib"
+      - prefix: "DUT."
+        suffix: ".dxlp(m).Sensitivity"
+        reference: "dxl_sens"
+      - prefix: "DUT."
+        suffix: ".dxwp(m).Contribution"
+        reference: "dxw_contrib"
+      - prefix: "DUT."
+        suffix: ".dxwp(m).Sensitivity"
+        reference: "dxw_sens"
+      - prefix: "DUT."
+        suffix: ".hdifp(m).Contribution"
+        reference: "hdif_contrib"
+      - prefix: "DUT."
+        suffix: ".hdifp(m).Sensitivity"
+        reference: "hdif_sens"

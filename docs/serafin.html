@@ -1,0 +1,565 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>serafin.serafin API documentation</title>
+<meta name="description" content="Single-Ended Operational Amplifier Characterization" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>serafin.serafin</code></h1>
+</header>
+<section id="section-intro">
+<p>Single-Ended Operational Amplifier Characterization</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#34;&#34;&#34; Single-Ended Operational Amplifier Characterization &#34;&#34;&#34;
+
+from   functools       import reduce
+from   operator        import or_
+from   tempfile        import mkdtemp
+from   shutil          import copyfile
+from   collections.abc import Iterable
+from   typing          import NamedTuple, Union
+import os
+import yaml
+from   scipy           import interpolate
+import numpy           as np
+import pandas          as pd
+import pyspectre       as ps
+from   pyspectre.core  import Session
+
+class OperationalAmplifier(NamedTuple):
+    &#34;&#34;&#34;
+    Single Ended Operational Amplifier
+    &#34;&#34;&#34;
+    session: Iterable[Session]
+    sim_dir: str
+    parameters: dict[str, float]
+    geometrical: dict[str, float]
+    electrical: dict[str, float]
+    area_expr: str
+    devices: dict[str, str]
+    op_params: dict[str, str]
+    of_params: dict[str, str]
+
+    def __del__(self):
+        ps.stop_session(self.session, remove_raw = True)
+
+def _setup_dir(pdk_cfg: dict, net_scs: str, ckt_cfg: dict) -&gt; str:
+    &#34;&#34;&#34;
+    Setup a temporary simulation directory with testbench and subckt ready to go.
+    &#34;&#34;&#34;
+
+    cwd    = os.path.dirname(os.path.abspath(__file__))
+    op_id  = os.path.basename(net_scs).split(&#39;.&#39;)[0]
+    usr_id = os.getlogin()
+
+    with open(net_scs, mode = &#39;r&#39;, encoding = &#39;utf-8&#39;) as net_h:
+        net = net_h.read()
+
+    includes = &#39;\n&#39;.join( [ f&#39;include &#34;{p[&#34;path&#34;]}&#34; section={p[&#34;section&#34;]}&#39;
+                            for p in pdk_cfg.get(&#39;include&#39;, {}) ] )
+
+    defaults  =  ckt_cfg.get( &#39;parameters&#39;, {}).get(&#39;testbench&#39;, {}
+                           ) | pdk_cfg.get(&#39;testbench&#39;, {})
+
+    tb_params = &#39;parameters &#39; \
+              + &#39; &#39;.join([ f&#39;{p}={v}&#39; for p,v in defaults.items() ])
+
+    op_params = &#39;parameters &#39; \
+              + &#39; &#39;.join([ f&#39;{p}={v}&#39;
+                           for p,v in ckt_cfg.get( &#39;parameters&#39;, {}
+                                                ).get( &#39;geometrical&#39;
+                                                     , {} ).items() ] )
+
+    area      = ckt_cfg.get(&#39;parameters&#39;, {}).get(&#39;area&#39;, &#39;0.0&#39;)
+    ae_params = f&#39;parameters area={area}&#39; if area != &#39;0.0&#39; else &#39;&#39;
+
+    op_pre    = pdk_cfg[&#39;devices&#39;][&#39;dcop&#39;][&#39;prefix&#39;]
+    op_suf    = pdk_cfg[&#39;devices&#39;][&#39;dcop&#39;][&#39;suffix&#39;]
+    op_par    = pdk_cfg[&#39;devices&#39;][&#39;dcop&#39;][&#39;parameters&#39;]
+    saves     = &#39;save &#39; \
+              + &#39;\\\n\t&#39;.join([ f&#39;{op_pre}*{op_suf}:{param}&#39;
+                                for param in op_par ])
+
+    subckt    = &#39;\n\n&#39;.join([ includes, tb_params, op_params, ae_params
+                            , net, saves ])
+
+    tmp_dir   = mkdtemp(prefix = f&#39;{usr_id}_{op_id}_&#39;)
+
+    with open(f&#39;{tmp_dir}/op.scs&#39;, &#39;w&#39;,  encoding = &#39;utf-8&#39;) as sub_h:
+        sub_h.write(subckt)
+
+    copyfile(f&#39;{cwd}/resource/testbench.scs&#39;, f&#39;{tmp_dir}/tb.scs&#39;)
+
+    return tmp_dir
+
+def make_op_amp( pdk_cfg: str, ckt_cfg: str, net: str, num: int = 1
+               ) -&gt; OperationalAmplifier:
+
+    with open(ckt_cfg, mode = &#39;r&#39;, encoding = &#39;utf-8&#39;) as ckt_h:
+        ckt = yaml.load(ckt_h, Loader=yaml.FullLoader)
+
+    with open(pdk_cfg, mode = &#39;r&#39;, encoding = &#39;utf-8&#39;) as pdk_h:
+        pdk = yaml.load(pdk_h, Loader=yaml.FullLoader)
+
+    sim_dir     = _setup_dir(pdk, net, ckt)
+
+    session     = ps.start_n_sessions( f&#39;{sim_dir}/tb.scs&#39;
+                                     , raw_path = f&#39;{sim_dir}/op.raw&#39;
+                                     , num      = num
+                                     , )
+
+    parameters  = pdk[&#39;testbench&#39;]  \
+                | pdk[&#39;defaults&#39;] \
+                | ckt[&#39;parameters&#39;][&#39;testbench&#39;]
+    geometrical = ckt[&#39;parameters&#39;][&#39;geometrical&#39;]
+    electrical  = ckt[&#39;parameters&#39;][&#39;electrical&#39;]
+    area_expr   = ckt[&#39;parameters&#39;][&#39;area&#39;]
+    devices     = { d[&#39;id&#39;]: d[&#39;type&#39;] for d in ckt[&#39;devices&#39;] }
+
+    dc_opps     = pdk[&#39;devices&#39;][&#39;dcop&#39;][&#39;parameters&#39;]
+    op_pre      = pdk[&#39;devices&#39;][&#39;dcop&#39;][&#39;prefix&#39;]
+    op_suf      = pdk[&#39;devices&#39;][&#39;dcop&#39;][&#39;suffix&#39;]
+    op_params   = dict( reduce( or_
+                              , [ { f&#39;{op_pre}{d}{op_suf}:{op}&#39;: f&#39;{d}_{op}&#39;
+                                    for op in dc_opps }
+                                  for d in devices.keys() ] ) )
+
+    of_devs     = pdk[&#39;devices&#39;][&#39;dcmatch&#39;]
+    of_params   = dict( reduce( or_
+                              , [ { f&#39;{of[&#34;prefix&#34;]}{d}{of[&#34;suffix&#34;]}&#39; : f&#39;{d}_{of[&#34;reference&#34;]}&#39;
+                                    for of in of_devs[t] }
+                                  for d,t in devices.items() ] ) )
+
+    op_amp      = OperationalAmplifier( session     = session
+                                      , sim_dir     = sim_dir
+                                      , parameters  = parameters
+                                      , geometrical = geometrical
+                                      , electrical  = electrical
+                                      , area_expr   = area_expr
+                                      , devices     = devices
+                                      , op_params   = op_params
+                                      , of_params   = of_params
+                                      , )
+    return op_amp
+
+def _find_closest_idx(array: np.array, value: float) -&gt; int:
+    return np.argmin(np.abs(array - value))
+
+def _db20(x: Union[float, np.array]) -&gt; Union[float, np.array]:
+    return np.log10(np.abs(x)) * 20.0
+
+def _estimated_area(op: OperationalAmplifier) -&gt; dict[str, float]:
+    return { &#39;area&#39;: eval(op.area_expr, {}, op.geometrical.copy()) }
+
+def _offset( op: OperationalAmplifier, dcmatch: pd.DataFrame
+           ) -&gt; dict[str, float]:
+    voff_stat = dcmatch[&#39;totalOutput.sigmaOut&#39;].values[0].item()
+    voff_syst = dcmatch[&#39;totalOutput.dcOp&#39;].values[0].item()
+    offset    = { op.of_params[of]: dcmatch[of].values.item()
+                  for of in dcmatch.columns if of in op.of_params.keys() }
+    return { &#39;perf&#39; : { &#39;voff_stat&#39;: voff_stat
+                      , &#39;voff_syst&#39;: voff_syst }
+           , &#39;offset&#39;: offset }
+
+def _stability(stb: pd.DataFrame) -&gt; dict[str, float]:
+    loop_gain = stb[&#39;loopGain&#39;].values
+    freq      = stb[&#39;freq&#39;].values
+    gain      = _db20(loop_gain)
+    phase     = np.angle(loop_gain, deg = True)
+    a0db      = gain[0].item()
+    a3db      = a0db - 3.0
+    a0_idx    = _find_closest_idx(gain, 0.0)
+    f0db      = freq[a0_idx].real.item()
+    f0_idx    = _find_closest_idx(freq, f0db)
+    ph0_idx   = _find_closest_idx(phase, 0.0)
+    pm        = phase[f0_idx]
+    cof       = freq[ph0_idx].real.item()
+    gm        = gain[ph0_idx]
+    return { &#39;a_0&#39;: a0db
+           , &#39;ugbw&#39;: f0db
+           , &#39;pm&#39;: pm
+           , &#39;gm&#39;: gm
+           , &#39;cof&#39;: cof }
+
+def _transient( tran: pd.DataFrame, vs: float = 0.5 ) -&gt; dict[str, float]:
+    time          = tran[&#39;time&#39;].values
+    out           = tran[&#39;OUT&#39;].values
+
+    idx_100       = _find_closest_idx(time, 100e-9)
+    idx_090       = _find_closest_idx(time, 90e-6)
+    idx_050       = _find_closest_idx(time, 50e-6)
+    idx_099       = _find_closest_idx(time, 99.9e-6)
+
+    rising        = out[idx_100:idx_050]
+    falling       = out[(idx_050+1):idx_099]
+
+    lower         = (0.1 * vs) - (vs / 2.0)
+    upper         = (0.9 * vs) - (vs / 2.0)
+
+    p1_rising     = time[_find_closest_idx(rising, lower)]
+    p2_rising     = time[_find_closest_idx(rising, upper)]
+
+    sr_rising     = (upper - lower) / (p2_rising - p1_rising)
+
+    p1_falling    = time[_find_closest_idx(falling, upper)]
+    p2_falling    = time[_find_closest_idx(falling, lower)]
+
+    sr_falling    = (lower - upper) / (p2_falling - p1_falling)
+
+    os_rising     = 100 * (np.max(rising) - out[idx_050]) / (out[idx_050] - out[idx_100])
+    os_falling    = 100 * (np.min(falling) - out[idx_090]) / (out[idx_090] - out[idx_050])
+
+    return { &#39;sr_r&#39;: sr_rising
+           , &#39;sr_f&#39;: sr_falling
+           , &#39;os_r&#39;: os_rising
+           , &#39;os_f&#39;: os_falling }
+
+def _output_referred_noise( noise: pd.DataFrame ) -&gt; dict[str, float]:
+    ids  = [&#39;vn_1Hz&#39;, &#39;vn_10Hz&#39;, &#39;vn_100Hz&#39;, &#39;vn_1kHz&#39;, &#39;vn_10kHz&#39;, &#39;vn_100kHz&#39;]
+    fs   = [1e0, 1e1, 1e2, 1e3, 1e4, 1e5]
+    freq = noise[&#39;freq&#39;].values
+    out  = noise[&#39;out&#39;].values
+    vn   = interpolate.pchip_interpolate(freq, out, fs)
+    return dict(zip(ids,vn))
+
+def _out_swing_dc( dc1: pd.DataFrame, vdd: float = 1.8, dev: float = 1.0e-4
+                 ) -&gt; dict[str, float]:
+    out       = dc1[&#39;OUT&#39;].values
+    out_ideal = dc1[&#39;OUT_IDEAL&#39;].values
+    vid       = dc1[&#39;vid&#39;].values
+    out_dc    = (out - out[_find_closest_idx(vid, 0.0)])
+    dev_rel   = np.abs(out_dc - out_ideal) / vdd
+    vil_idx   = np.argmin(np.abs(dev_rel[vid &lt;= 0.0] - dev))
+    vih_idx   = np.argmin(np.abs(dev_rel[vid &gt;= 0.0] - dev))
+    vol_dc    = (out_dc[vil_idx] + (vdd / 2.0))
+    voh_dc    = (out_dc[vih_idx] + (vdd / 2.0))
+    return { &#39;v_oh&#39;: voh_dc
+           , &#39;v_ol&#39;: vol_dc }
+
+def _rejection( xf: pd.DataFrame ) -&gt; dict[str, float]:
+    vid_db   = _db20(xf[&#39;VID&#39;].values)
+    vicm_db  = _db20(xf[&#39;VICM&#39;].values)
+    vsupp_db = _db20(xf[&#39;VSUPP&#39;].values)
+    vsupn_db = _db20(xf[&#39;VSUPN&#39;].values)
+    psrr_p   = (vid_db - vsupp_db)[0]
+    psrr_n   = (vid_db - vsupn_db)[0]
+    cmrr     = (vid_db - vicm_db)[0]
+    return { &#39;psrr_p&#39;: psrr_p
+           , &#39;psrr_n&#39;: psrr_n
+           , &#39;cmrr&#39;: cmrr }
+
+def _out_swing_ac( ac: pd.DataFrame, A3dB: float, vdd: float = 1.8
+                 ) -&gt; dict[str, float]:
+    vicm   = ac[&#39;vicm&#39;].values
+    out_ac = _db20(ac[&#39;OUT&#39;].values)
+    vil_ac = (vicm[np.argmin(np.abs(out_ac[vicm &lt;= 0.0] - A3dB))] + (vdd / 2.0)).real
+    vih_ac = (vicm[np.argmin(np.abs(out_ac[vicm &gt;= 0.0] - A3dB))] + (vdd / 2.0)).real
+    return { &#39;v_ih&#39;: vih_ac
+           , &#39;v_il&#39;: vil_ac }
+
+def _output_current( dc3: pd.DataFrame, dc4: pd.DataFrame
+                   ) -&gt; dict[str, float]:
+    i_out_min = dc3[&#39;DUT:O&#39;].values[0]
+    i_out_max = dc4[&#39;DUT:O&#39;].values[0]
+    return { &#39;i_out_min&#39;: i_out_min
+           , &#39;i_out_max&#39;: i_out_max }
+
+def _operating_point( op: OperationalAmplifier
+                    , dcop: pd.DataFrame
+                    ) -&gt; dict[str, float]:
+    idd = dcop[&#39;DUT:VDD&#39;].values.item()
+    iss = dcop[&#39;DUT:VSS&#39;].values.item()
+    ops = { op.op_params[o]: dcop[o].values.item()
+            for o in dcop.columns
+            if o in op.op_params.keys() }
+    return { &#39;perf&#39;: { &#39;idd&#39;: idd
+                     , &#39;iss&#39;: iss }
+           , &#39;op&#39;: ops }
+
+def evaluate(op: OperationalAmplifier) -&gt; dict[str, float]:
+    results = ps.run_all(op.session)
+    area    = _estimated_area(op)
+    dcmatch = _offset(op, results[&#39;dcmatch&#39;])
+    stb     = _stability(results[&#39;stb&#39;])
+    tran    = _transient( results[&#39;tran&#39;]
+                        , op.parameters[&#39;vs&#39;] )
+    noise   = _output_referred_noise(results[&#39;noise&#39;])
+    dc1     = _out_swing_dc( results[&#39;dc1&#39;]
+                           , op.parameters[&#39;vdd&#39;]
+                           , op.parameters[&#39;dev&#39;] )
+    ac      = _out_swing_ac( results[&#39;ac&#39;]
+                           , (stb[&#39;a_0&#39;] - 3.0)
+                           , op.parameters[&#39;vdd&#39;] )
+    xf      = _rejection(results[&#39;xf&#39;])
+    dc34    = _output_current( results[&#39;dc3&#39;]
+                             , results[&#39;dc4&#39;] )
+    dcop    = _operating_point( op
+                              , results[&#39;dcop&#39;])
+
+    perf    = area \
+            | dcmatch[&#39;perf&#39;] \
+            | stb \
+            | tran \
+            | noise \
+            | dc1 \
+            | ac \
+            | xf \
+            | dc34 \
+            | dcop[&#39;perf&#39;]
+
+    return { &#39;performance&#39;: perf
+           , &#39;operating_point&#39;: dcop[&#39;op&#39;]
+           , &#39;offset&#39;: dcmatch[&#39;offset&#39;] }</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="serafin.serafin.evaluate"><code class="name flex">
+<span>def <span class="ident">evaluate</span></span>(<span>op: <a title="serafin.serafin.OperationalAmplifier" href="#serafin.serafin.OperationalAmplifier">OperationalAmplifier</a>) ‑> dict[str, float]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def evaluate(op: OperationalAmplifier) -&gt; dict[str, float]:
+    results = ps.run_all(op.session)
+    area    = _estimated_area(op)
+    dcmatch = _offset(op, results[&#39;dcmatch&#39;])
+    stb     = _stability(results[&#39;stb&#39;])
+    tran    = _transient( results[&#39;tran&#39;]
+                        , op.parameters[&#39;vs&#39;] )
+    noise   = _output_referred_noise(results[&#39;noise&#39;])
+    dc1     = _out_swing_dc( results[&#39;dc1&#39;]
+                           , op.parameters[&#39;vdd&#39;]
+                           , op.parameters[&#39;dev&#39;] )
+    ac      = _out_swing_ac( results[&#39;ac&#39;]
+                           , (stb[&#39;a_0&#39;] - 3.0)
+                           , op.parameters[&#39;vdd&#39;] )
+    xf      = _rejection(results[&#39;xf&#39;])
+    dc34    = _output_current( results[&#39;dc3&#39;]
+                             , results[&#39;dc4&#39;] )
+    dcop    = _operating_point( op
+                              , results[&#39;dcop&#39;])
+
+    perf    = area \
+            | dcmatch[&#39;perf&#39;] \
+            | stb \
+            | tran \
+            | noise \
+            | dc1 \
+            | ac \
+            | xf \
+            | dc34 \
+            | dcop[&#39;perf&#39;]
+
+    return { &#39;performance&#39;: perf
+           , &#39;operating_point&#39;: dcop[&#39;op&#39;]
+           , &#39;offset&#39;: dcmatch[&#39;offset&#39;] }</code></pre>
+</details>
+</dd>
+<dt id="serafin.serafin.make_op_amp"><code class="name flex">
+<span>def <span class="ident">make_op_amp</span></span>(<span>pdk_cfg: str, ckt_cfg: str, net: str, num: int = 1) ‑> <a title="serafin.serafin.OperationalAmplifier" href="#serafin.serafin.OperationalAmplifier">OperationalAmplifier</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def make_op_amp( pdk_cfg: str, ckt_cfg: str, net: str, num: int = 1
+               ) -&gt; OperationalAmplifier:
+
+    with open(ckt_cfg, mode = &#39;r&#39;, encoding = &#39;utf-8&#39;) as ckt_h:
+        ckt = yaml.load(ckt_h, Loader=yaml.FullLoader)
+
+    with open(pdk_cfg, mode = &#39;r&#39;, encoding = &#39;utf-8&#39;) as pdk_h:
+        pdk = yaml.load(pdk_h, Loader=yaml.FullLoader)
+
+    sim_dir     = _setup_dir(pdk, net, ckt)
+
+    session     = ps.start_n_sessions( f&#39;{sim_dir}/tb.scs&#39;
+                                     , raw_path = f&#39;{sim_dir}/op.raw&#39;
+                                     , num      = num
+                                     , )
+
+    parameters  = pdk[&#39;testbench&#39;]  \
+                | pdk[&#39;defaults&#39;] \
+                | ckt[&#39;parameters&#39;][&#39;testbench&#39;]
+    geometrical = ckt[&#39;parameters&#39;][&#39;geometrical&#39;]
+    electrical  = ckt[&#39;parameters&#39;][&#39;electrical&#39;]
+    area_expr   = ckt[&#39;parameters&#39;][&#39;area&#39;]
+    devices     = { d[&#39;id&#39;]: d[&#39;type&#39;] for d in ckt[&#39;devices&#39;] }
+
+    dc_opps     = pdk[&#39;devices&#39;][&#39;dcop&#39;][&#39;parameters&#39;]
+    op_pre      = pdk[&#39;devices&#39;][&#39;dcop&#39;][&#39;prefix&#39;]
+    op_suf      = pdk[&#39;devices&#39;][&#39;dcop&#39;][&#39;suffix&#39;]
+    op_params   = dict( reduce( or_
+                              , [ { f&#39;{op_pre}{d}{op_suf}:{op}&#39;: f&#39;{d}_{op}&#39;
+                                    for op in dc_opps }
+                                  for d in devices.keys() ] ) )
+
+    of_devs     = pdk[&#39;devices&#39;][&#39;dcmatch&#39;]
+    of_params   = dict( reduce( or_
+                              , [ { f&#39;{of[&#34;prefix&#34;]}{d}{of[&#34;suffix&#34;]}&#39; : f&#39;{d}_{of[&#34;reference&#34;]}&#39;
+                                    for of in of_devs[t] }
+                                  for d,t in devices.items() ] ) )
+
+    op_amp      = OperationalAmplifier( session     = session
+                                      , sim_dir     = sim_dir
+                                      , parameters  = parameters
+                                      , geometrical = geometrical
+                                      , electrical  = electrical
+                                      , area_expr   = area_expr
+                                      , devices     = devices
+                                      , op_params   = op_params
+                                      , of_params   = of_params
+                                      , )
+    return op_amp</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="serafin.serafin.OperationalAmplifier"><code class="flex name class">
+<span>class <span class="ident">OperationalAmplifier</span></span>
+<span>(</span><span>session: collections.abc.Iterable[pyspectre.core.Session], sim_dir: str, parameters: dict[str, float], geometrical: dict[str, float], electrical: dict[str, float], area_expr: str, devices: dict[str, str], op_params: dict[str, str], of_params: dict[str, str])</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Single Ended Operational Amplifier</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class OperationalAmplifier(NamedTuple):
+    &#34;&#34;&#34;
+    Single Ended Operational Amplifier
+    &#34;&#34;&#34;
+    session: Iterable[Session]
+    sim_dir: str
+    parameters: dict[str, float]
+    geometrical: dict[str, float]
+    electrical: dict[str, float]
+    area_expr: str
+    devices: dict[str, str]
+    op_params: dict[str, str]
+    of_params: dict[str, str]
+
+    def __del__(self):
+        ps.stop_session(self.session, remove_raw = True)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.tuple</li>
+</ul>
+<h3>Instance variables</h3>
+<dl>
+<dt id="serafin.serafin.OperationalAmplifier.area_expr"><code class="name">var <span class="ident">area_expr</span> : str</code></dt>
+<dd>
+<div class="desc"><p>Alias for field number 5</p></div>
+</dd>
+<dt id="serafin.serafin.OperationalAmplifier.devices"><code class="name">var <span class="ident">devices</span> : dict[str, str]</code></dt>
+<dd>
+<div class="desc"><p>Alias for field number 6</p></div>
+</dd>
+<dt id="serafin.serafin.OperationalAmplifier.electrical"><code class="name">var <span class="ident">electrical</span> : dict[str, float]</code></dt>
+<dd>
+<div class="desc"><p>Alias for field number 4</p></div>
+</dd>
+<dt id="serafin.serafin.OperationalAmplifier.geometrical"><code class="name">var <span class="ident">geometrical</span> : dict[str, float]</code></dt>
+<dd>
+<div class="desc"><p>Alias for field number 3</p></div>
+</dd>
+<dt id="serafin.serafin.OperationalAmplifier.of_params"><code class="name">var <span class="ident">of_params</span> : dict[str, str]</code></dt>
+<dd>
+<div class="desc"><p>Alias for field number 8</p></div>
+</dd>
+<dt id="serafin.serafin.OperationalAmplifier.op_params"><code class="name">var <span class="ident">op_params</span> : dict[str, str]</code></dt>
+<dd>
+<div class="desc"><p>Alias for field number 7</p></div>
+</dd>
+<dt id="serafin.serafin.OperationalAmplifier.parameters"><code class="name">var <span class="ident">parameters</span> : dict[str, float]</code></dt>
+<dd>
+<div class="desc"><p>Alias for field number 2</p></div>
+</dd>
+<dt id="serafin.serafin.OperationalAmplifier.session"><code class="name">var <span class="ident">session</span> : collections.abc.Iterable[pyspectre.core.Session]</code></dt>
+<dd>
+<div class="desc"><p>Alias for field number 0</p></div>
+</dd>
+<dt id="serafin.serafin.OperationalAmplifier.sim_dir"><code class="name">var <span class="ident">sim_dir</span> : str</code></dt>
+<dd>
+<div class="desc"><p>Alias for field number 1</p></div>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="serafin" href="index.html">serafin</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="serafin.serafin.evaluate" href="#serafin.serafin.evaluate">evaluate</a></code></li>
+<li><code><a title="serafin.serafin.make_op_amp" href="#serafin.serafin.make_op_amp">make_op_amp</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="serafin.serafin.OperationalAmplifier" href="#serafin.serafin.OperationalAmplifier">OperationalAmplifier</a></code></h4>
+<ul class="two-column">
+<li><code><a title="serafin.serafin.OperationalAmplifier.area_expr" href="#serafin.serafin.OperationalAmplifier.area_expr">area_expr</a></code></li>
+<li><code><a title="serafin.serafin.OperationalAmplifier.devices" href="#serafin.serafin.OperationalAmplifier.devices">devices</a></code></li>
+<li><code><a title="serafin.serafin.OperationalAmplifier.electrical" href="#serafin.serafin.OperationalAmplifier.electrical">electrical</a></code></li>
+<li><code><a title="serafin.serafin.OperationalAmplifier.geometrical" href="#serafin.serafin.OperationalAmplifier.geometrical">geometrical</a></code></li>
+<li><code><a title="serafin.serafin.OperationalAmplifier.of_params" href="#serafin.serafin.OperationalAmplifier.of_params">of_params</a></code></li>
+<li><code><a title="serafin.serafin.OperationalAmplifier.op_params" href="#serafin.serafin.OperationalAmplifier.op_params">op_params</a></code></li>
+<li><code><a title="serafin.serafin.OperationalAmplifier.parameters" href="#serafin.serafin.OperationalAmplifier.parameters">parameters</a></code></li>
+<li><code><a title="serafin.serafin.OperationalAmplifier.session" href="#serafin.serafin.OperationalAmplifier.session">session</a></code></li>
+<li><code><a title="serafin.serafin.OperationalAmplifier.sim_dir" href="#serafin.serafin.OperationalAmplifier.sim_dir">sim_dir</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>

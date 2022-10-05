@@ -1,0 +1,6 @@
+pyyaml
+numpy
+pandas
+matplotlib
+pynut
+pyspectre

@@ -1,5 +1,5 @@
 include:
-  - path: "/opt/pdk/gpdk180_v3.3/models/spectre/gpdk.scs"
+  - path: "/path/to/gpdk180/models/spectre/gpdk.scs"
     section: "stat"
 testbench:
   cl: 5.0e-12

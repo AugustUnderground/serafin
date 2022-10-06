@@ -1,5 +1,5 @@
 include:
-  - path: "/path/to/gpdk180/models/spectre/gpdk.scs"
+  - path:  "/opt/pdk/gpdk180_v3.3/models/spectre/gpdk.scs" # "/path/to/pdk/gpdk180_v3.3/models/spectre/gpdk.scs"
     section: "stat"
 testbench:
   cl: 5.0e-12
@@ -100,3 +100,18 @@ devices:
       - prefix: "DUT."
         suffix: ".hdifp(m).Sensitivity"
         reference: "hdif_sens"
+generator:
+  nmos: 
+    id: "nmos1"
+    derived: []
+  pmos: 
+    id: "pmos1"
+    derived: []
+  cap:
+    id: "mimcap"
+    derived: "area=(WIDTH)*(LENGTH) perim=2*(WIDTH)+2*(LENGTH) m=MULT"
+    calc: ""
+  res:
+    id: "polyres_pcell_0"
+    derived: "sl=(((7.5)*((WIDTH)-(0))*(1))/((7.5)*(1)))+(0) w=WIDTH"
+    calc: ""

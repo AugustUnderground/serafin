@@ -1,21 +1,16 @@
 subckt op B INP INN O VDD VSS
-    // NMOS Current Mirror 1
-    MNCM11 (B  B   VSS VSS) nmos w=Wcm1 l=Lcm1 m=Mcm11
-    MNCM12 (CM B   VSS VSS) nmos w=Wcm1 l=Lcm1 m=Mcm12
+    MNCM11 (B  B   VSS VSS) nmos1 m=Mcm11 w=Wcm1 l=Lcm1
+    MNCM12 (CM B   VSS VSS) nmos1 m=Mcm12 w=Wcm1 l=Lcm1
 
-    // NMOS Differential Pair 1
-    MNDP11 (Y  INN CM  VSS) nmos w=Wdp1 l=Ldp1 m=Mdp11
-    MNDP12 (X  INP CM  VSS) nmos w=Wdp1 l=Ldp1 m=Mdp12
+    MNDP11 (Y  INN CM  VSS) nmos1 m=Mdp11 w=Wdp1 l=Ldp1
+    MNDP12 (X  INP CM  VSS) nmos1 m=Mdp12 w=Wdp1 l=Ldp1
 
-    // PMOS Current Mirror 2
-    MPCM21 (Y  Y   VDD VDD) pmos w=Wcm2 l=Lcm2 m=Mcm21
-    MPCM22 (Z  Y   VDD VDD) pmos w=Wcm2 l=Lcm2 m=Mcm22
+    MPCM21 (Y  Y   VDD VDD) pmos1 m=Mcm21 w=Wcm2 l=Lcm2
+    MPCM22 (Z  Y   VDD VDD) pmos1 m=Mcm22 w=Wcm2 l=Lcm2
 
-    // PMOS Current Mirror 3
-    MPCM31 (X  X   VDD VDD) pmos w=Wcm3 l=Lcm3 m=Mcm31
-    MPCM32 (O  X   VDD VDD) pmos w=Wcm3 l=Lcm3 m=Mcm32
+    MPCM31 (X  X   VDD VDD) pmos1 m=Mcm31 w=Wcm3 l=Lcm3
+    MPCM32 (O  X   VDD VDD) pmos1 m=Mcm32 w=Wcm3 l=Lcm3
 
-    // NMOS Current Mirror 4
-    MNCM41 (Z  Z   VSS VSS) nmos w=Wcm4 l=Ldp1 m=Mcm41
-    MNCM42 (O  Z   VSS VSS) nmos w=Wcm4 l=Ldp1 m=Mcm42
+    MNCM41 (Z  Z   VSS VSS) nmos1 m=Mcm41 w=Wcm4 l=Lcm4
+    MNCM42 (O  Z   VSS VSS) nmos1 m=Mcm42 w=Wcm4 l=Lcm4
 ends op

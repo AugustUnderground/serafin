@@ -1,9 +1,9 @@
 """ Single-Ended Operational Amplifier Characterization """
 
-from   functools       import reduce
+from   functools       import reduce, partial
 from   operator        import or_
 from   tempfile        import mkdtemp
-from   shutil          import copyfile
+from   shutil          import copyfile, rmtree
 from   collections.abc import Iterable
 from   typing          import NamedTuple, Union
 import os
@@ -18,18 +18,19 @@ class OperationalAmplifier(NamedTuple):
     """
     Single Ended Operational Amplifier
     """
-    session: Iterable[Session]
-    sim_dir: str
-    parameters: dict[str, float]
+    session:     Iterable[Session]
+    sim_dir:     Iterable[str]
+    parameters:  dict[str, float]
     geometrical: dict[str, float]
-    electrical: dict[str, float]
-    area_expr: str
-    devices: dict[str, str]
-    op_params: dict[str, str]
-    of_params: dict[str, str]
+    electrical:  dict[str, float]
+    area_expr:   str
+    devices:     dict[str, str]
+    op_params:   dict[str, str]
+    of_params:   dict[str, str]
 
     def __del__(self):
         ps.stop_session(self.session, remove_raw = True)
+        _ = list(map(rmtree, self.sim_dir))
 
 def _setup_dir(pdk_cfg: dict, net_scs: str, ckt_cfg: dict) -> str:
     """
@@ -89,15 +90,17 @@ def make_op_amp( pdk_cfg: str, ckt_cfg: str, net: str, num: int = 1
     with open(pdk_cfg, mode = 'r', encoding = 'utf-8') as pdk_h:
         pdk = yaml.load(pdk_h, Loader=yaml.FullLoader)
 
-    sim_dir     = _setup_dir(pdk, net, ckt)
+    sim_dir    = [_setup_dir(pdk, net, ckt) for _ in range(num)] \
+                    if num > 1 else _setup_dir(pdk, net, ckt)
+    net_path   = [ f'{sd}/tb.scs' for sd in sim_dir ] \
+                   if num > 1 else f'{sim_dir}/tb.scs'
+    raw_path   = [ f'{rp}/op.raw' for rp in sim_dir ] \
+                   if num > 1 else f'{sim_dir}/op.raw'
 
-    session     = ps.start_n_sessions( f'{sim_dir}/tb.scs'
-                                     , raw_path = f'{sim_dir}/op.raw'
-                                     , num      = num
-                                     , )
+    session    = ps.start_session(net_path, raw_path = raw_path)
 
     parameters  = pdk['testbench']  \
-                | pdk['defaults'] \
+                | pdk['defaults']   \
                 | ckt['parameters']['testbench']
     geometrical = ckt['parameters']['geometrical']
     electrical  = ckt['parameters']['electrical']
@@ -130,14 +133,24 @@ def make_op_amp( pdk_cfg: str, ckt_cfg: str, net: str, num: int = 1
                                       , )
     return op_amp
 
+def current_sizing( op: OperationalAmplifier
+                  ) -> Union[dict[str,float], Iterable[dict[str,float]]]:
+    num    = 1 if isinstance(op.session, Session) else len(op.session)
+    params = num * [op.geometrical.keys()] if num > 1 else op.geometrical.keys()
+    return ps.get_parameters(op.session, params)
+
 def _find_closest_idx(array: np.array, value: float) -> int:
     return np.argmin(np.abs(array - value))
 
 def _db20(x: Union[float, np.array]) -> Union[float, np.array]:
     return np.log10(np.abs(x)) * 20.0
 
-def _estimated_area(op: OperationalAmplifier) -> dict[str, float]:
-    return { 'area': eval(op.area_expr, {}, op.geometrical.copy()) }
+def _estimated_area( op: OperationalAmplifier
+                   ) -> Iterable[dict[str, float]]:
+    num  = 1 if isinstance(op.session, Session) else len(op.session)
+    params = current_sizing(op) if num > 1 else [current_sizing(op)]
+    area = [{ 'area': eval(op.area_expr, {}, p) } for p in params]
+    return area
 
 def _offset( op: OperationalAmplifier, dcmatch: pd.DataFrame
            ) -> dict[str, float]:
@@ -186,13 +199,15 @@ def _transient( tran: pd.DataFrame, vs: float = 0.5 ) -> dict[str, float]:
 
     p1_rising     = time[_find_closest_idx(rising, lower)]
     p2_rising     = time[_find_closest_idx(rising, upper)]
+    d_rising      = p2_rising - p1_rising
 
-    sr_rising     = (upper - lower) / (p2_rising - p1_rising)
+    sr_rising     = (upper - lower) / d_rising if d_rising > 0 else 0.0
 
     p1_falling    = time[_find_closest_idx(falling, upper)]
     p2_falling    = time[_find_closest_idx(falling, lower)]
+    d_falling     = p2_falling - p1_falling
 
-    sr_falling    = (lower - upper) / (p2_falling - p1_falling)
+    sr_falling    = (lower - upper) / d_falling if d_falling > 0 else 0.0
 
     os_rising     = 100 * (np.max(rising) - out[idx_050]) / (out[idx_050] - out[idx_100])
     os_falling    = 100 * (np.min(falling) - out[idx_090]) / (out[idx_090] - out[idx_050])
@@ -265,36 +280,39 @@ def _operating_point( op: OperationalAmplifier
            , 'op': ops }
 
 def evaluate(op: OperationalAmplifier) -> dict[str, float]:
-    results = ps.run_all(op.session)
+    num     = 1 if isinstance(op.session, Session) else len(op.session)
+    vdd     = op.parameters['vdd']
+    dev     = op.parameters['dev']
+
+    results = ps.run_all(op.session) if num > 1 else [ps.run_all(op.session)]
     area    = _estimated_area(op)
-    dcmatch = _offset(op, results['dcmatch'])
-    stb     = _stability(results['stb'])
-    tran    = _transient( results['tran']
-                        , op.parameters['vs'] )
-    noise   = _output_referred_noise(results['noise'])
-    dc1     = _out_swing_dc( results['dc1']
-                           , op.parameters['vdd']
-                           , op.parameters['dev'] )
-    ac      = _out_swing_ac( results['ac']
-                           , (stb['a_0'] - 3.0)
-                           , op.parameters['vdd'] )
-    xf      = _rejection(results['xf'])
-    dc34    = _output_current( results['dc3']
-                             , results['dc4'] )
-    dcop    = _operating_point( op
-                              , results['dcop'])
+    dcmatch = [ _offset(op, result['dcmatch']) for result in results ]
+    stb     = [ _stability(result['stb']) for result in results ]
+    tran    = [ _transient(result['tran'], op.parameters['vs'])
+                for result in results ]
+    noise   = [ _output_referred_noise(result['noise']) for result in results ]
+    dc1     = [ _out_swing_dc(result['dc1'], vdd, dev) for result in results ]
+    ac      = [ _out_swing_ac(result['ac'], (stab['a_0'] - 3.0), vdd)
+                for result,stab in zip(results,stb) ]
+    xf      = [ _rejection(result['xf']) for result in results ]
+    dc34    = [ _output_current(result['dc3'], result['dc4'])
+                for result in results ]
+    dcop    = [ _operating_point(op, result['dcop']) for result in results ]
 
-    perf    = area \
-            | dcmatch['perf'] \
-            | stb \
-            | tran \
-            | noise \
-            | dc1 \
-            | ac \
-            | xf \
-            | dc34 \
-            | dcop['perf']
+    perf    = list( map( partial(reduce, or_)
+                       , zip( area
+                            , [ dcm['perf'] for dcm in dcmatch ]
+                            , stb
+                            , tran
+                            , noise
+                            , dc1
+                            , ac
+                            , xf
+                            , dc34
+                            , [ dco['perf'] for dco in dcop ] ) ) )
 
-    return { 'performance': perf
-           , 'operating_point': dcop['op']
-           , 'offset': dcmatch['offset'] }
+    return { 'performance': perf if num > 1 else perf[0]
+           , 'operating_point': [ dco['op'] for dco in dcop ] \
+                                if num > 1 else dcop[0]['op']
+           , 'offset': [ dcm['offset'] for dcm in dcmatch ] \
+                       if num > 1 else dcmatch[0]['offset'] }

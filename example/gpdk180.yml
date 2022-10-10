@@ -14,11 +14,11 @@ defaults:
 constraints:
   length:
     min: 0.18e-6
-    max: 15.0e-6
+    max: 20.0e-6
     grid: 25.0e-9
   width:
-    min: 0.22e-6
-    max: 150.0e-6
+    min: 0.40e-6
+    max: 100.0e-6
     grid: 50.0e-9
 devices:
   dcop:
@@ -52,10 +52,10 @@ devices:
         suffix: ".toxn(m).Sensitivity"
         reference: "tox_sens"
       - prefix: "DUT."
-        suffix: ".dxln(m).Contribution"
+        suffix: ".dlxn(m).Contribution"
         reference: "dxl_contrib"
       - prefix: "DUT."
-        suffix: ".dxln(m).Sensitivity"
+        suffix: ".dlxn(m).Sensitivity"
         reference: "dxl_sens"
       - prefix: "DUT."
         suffix: ".dxwn(m).Contribution"
@@ -63,12 +63,6 @@ devices:
       - prefix: "DUT."
         suffix: ".dxwn(m).Sensitivity"
         reference: "dxw_sens"
-      - prefix: "DUT."
-        suffix: ".hdifn(m).Contribution"
-        reference: "hdif_contrib"
-      - prefix: "DUT."
-        suffix: ".hdifn(m).Sensitivity"
-        reference: "hdif_sens"
     PMOS:
       - prefix: "DUT."
         suffix: ".dvthp(m).Contribution"
@@ -94,12 +88,6 @@ devices:
       - prefix: "DUT."
         suffix: ".dxwp(m).Sensitivity"
         reference: "dxw_sens"
-      - prefix: "DUT."
-        suffix: ".hdifp(m).Contribution"
-        reference: "hdif_contrib"
-      - prefix: "DUT."
-        suffix: ".hdifp(m).Sensitivity"
-        reference: "hdif_sens"
 generator:
   nmos: 
     id: "nmos1"

@@ -12,11 +12,9 @@ sym = sf.make_op_amp(pdk, ckt, net)
 
 prf = sf.evaluate(sym)
 
-prf['performance']
-
 ## Parallel
 syms = sf.make_op_amp(pdk, ckt, net, num)
 
-prfs = sf.evaluate(syms)
+size = sf.random_sizing(syms)
 
-prfs['performance']
+prfs = sf.evaluate(syms, size)

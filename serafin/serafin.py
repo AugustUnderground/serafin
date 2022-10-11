@@ -30,10 +30,22 @@ class OperationalAmplifier(NamedTuple):
     devices:     dict[str, str]
     op_params:   dict[str, str]
     of_params:   dict[str, str]
+    pf_params:   dict[str, str]
 
     def __del__(self):
         ps.stop_session(self.session, remove_raw = True)
         _ = list(map(rmtree, self.sim_dir))
+
+def sub_set(op: OperationalAmplifier, session_ids: int) -> OperationalAmplifier:
+    """
+    Same OpAmp with subset of sessions
+    """
+    sessions = [op.session[i] for i in session_ids]
+    sim_dirs = [op.sim_dir[i] for i in session_ids]
+    return OperationalAmplifier( session = sessions
+                               , sim_dir = sim_dirs
+                               , *op[2:]
+                               , )
 
 def initial_sizing(op: OperationalAmplifier) -> pd.DataFrame:
     return pd.DataFrame.from_dict({k: [v] for k,v in op.geometrical.items()})
@@ -111,6 +123,37 @@ def make_op_amp( pdk_cfg: str, ckt_cfg: str, net: str, num: int = 1
                                     for of in of_devs[t] }
                                   for d,t in devices.items() ] ) )
 
+    pf_params   = { 'area':       'Estimated Area'
+                  , 'a_0':        'DC Loop Gain'
+                  , 'cmrr':       'Common Mode Rejection Ratio'
+                  , 'cof':        'Cross-Over Frequency'
+                  , 'gm':         'Gain Margin'
+                  , 'i_out_max':  'Maximum output Current'
+                  , 'i_out_min':  'Minimum output Current'
+                  , 'idd':        'Current Consumption'
+                  , 'iss':        'Current Consumption'
+                  , 'os_f':       'Overshoot Falling'
+                  , 'os_r':       'Overshoot Rising'
+                  , 'pm':         'Phase Margin'
+                  , 'psrr_n':     'Power Supply Rejection Ratio'
+                  , 'psrr_p':     'Power Supply Rejection Ratio'
+                  , 'sr_f':       'Slew Rate Falling'
+                  , 'sr_r':       'Slew Rate Rising'
+                  , 'ugbw':       'Unity Gain Bandwidth'
+                  , 'v_ih':       'Input Voltage Hight'
+                  , 'v_il':       'Input Voltage Low'
+                  , 'v_oh':       'Output Voltage High'
+                  , 'v_ol':       'Output Voltage Low'
+                  , 'vn_1Hz':     'Output Referred Noise @ 1Hz'
+                  , 'vn_10Hz':    'Output Referred Noise @ 10Hz'
+                  , 'vn_100Hz':   'Output Referred Noise @ 100Hz'
+                  , 'vn_1kHz':    'Output Referred Noise @ 1kHz'
+                  , 'vn_10kHz':   'Output Referred Noise @ 10kHz'
+                  , 'vn_100kHz':  'Output Referred Noise @ 100kHz'
+                  , 'voff_stat':  'Statistical Offset'
+                  , 'voff_syst':  'Systematic Offset'
+                  , }
+
     op_amp      = OperationalAmplifier( session     = session
                                       , sim_dir     = sim_dir
                                       , parameters  = parameters
@@ -121,6 +164,7 @@ def make_op_amp( pdk_cfg: str, ckt_cfg: str, net: str, num: int = 1
                                       , devices     = devices
                                       , op_params   = op_params
                                       , of_params   = of_params
+                                      , pf_params   = pf_params
                                       , )
     return op_amp
 
@@ -131,8 +175,10 @@ def _current_sizing( op: OperationalAmplifier
     return ps.get_parameters(op.session, params)
 
 def current_sizing(op: OperationalAmplifier) -> pd.DataFrame:
-    keys = list(op.geometrical.columns())
-    vals = np.array([[s[k] for k in keys] for s in _current_sizing(op)])
+    num  = 1 if isinstance(op.session, Session) else len(op.session)
+    keys = list(op.geometrical.keys())
+    size = _current_sizing(op) if num > 1 else [_current_sizing(op)]
+    vals = np.array([[s[k] for k in keys] for s in size])
     return pd.DataFrame(vals, columns = keys)
 
 def _estimated_area( op: OperationalAmplifier
@@ -304,10 +350,10 @@ def evaluate( op: OperationalAmplifier, sizing: pd.DataFrame = None
 
     s_dict  = sizing.to_dict(orient = 'list') if sizing is not None else {}
     sizes   = [dict(zip(s_dict.keys(), col)) for col in zip(*s_dict.values())]
-    ret     = num * [True] if sizing is None else \
+    ret     = True if sizing is None else \
                 ps.set_parameters(op.session, sizes if num > 1 else sizes[0])
 
-    if not all(ret):
+    if not ret:
         raise(IOError( errno.EIO, os.strerror(errno.EIO)
                      , f'spectre failed to set sizing parameters with non-zero exit code {ret}.' ))
 

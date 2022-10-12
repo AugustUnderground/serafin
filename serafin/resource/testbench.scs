@@ -1,4 +1,5 @@
 // Single-Ended Operational Amplifier Characterization Testbench
+// Original Author: Matthias Schweikardt (https://github.com/matthschw)
 
 simulator lang=spectre
 global 0
@@ -48,19 +49,6 @@ simulatorOptions options reltol=100e-6 vabstol=1e-6 iabstol=1e-12 temp=27   \
                          tnom=27 homotopy=all gmin=1e-12 rforce=1           \
                          save=selected dc_pivot_check=yes scale=scl
 
-// save DUT.M*.m1:gm        \
-//   DUT.M*.m1:gds       \
-//   DUT.M*.m1:id        \
-//   DUT.M*.m1:gmoverid  \
-//   DUT.M*.m1:fug       \
-//   DUT.M*.m1:vdsat     \
-//   DUT.M*.m1:vgs       \
-//   DUT.M*.m1:vds       \
-//   DUT.M*.m1:vbs       \
-//   DUT.M*.m1:gmb       \
-//   DUT.M*.m1:vth       \
-//   DUT.M*.m1:self_gain \
-    
 save DUT.X DUT.Y DUT.Z DUT.B DUT.CM DUT:O DUT:VDD DUT:VSS \
      INN INP OUT OUT_IDEAL VDD VSS
 

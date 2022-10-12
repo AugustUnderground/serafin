@@ -48,16 +48,4 @@ parameters:
     Mcm32: 4.0
     Mcm41: 2.0
     Mcm42: 2.0
-  electrical:
-    Gcm1: 10.0
-    Gcm2: 10.0
-    Gcm3: 10.0
-    Gdp1: 10.0
-    Fcm1: 7.5e9
-    Fcm2: 7.5e9
-    Fcm3: 7.5e9
-    Fdp1: 7.5e9
-    Ib01: 6.0e-6
-    Ib02: 12.0e-6
-    Ib03: 12.0e-6
   area: "((Mcm11+Mcm12)*Wcm1*Lcm1)+((Mdp11+Mdp12)*Wdp1*Ldp1)+((Mcm21+Mcm22)*Wcm2*Lcm2)+((Mcm31+Mcm32)*Wcm3*Lcm3)+(Mcm41+Mcm42)*Wcm4*Lcm4"

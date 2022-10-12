@@ -20,7 +20,6 @@ class OperationalAmplifier(NamedTuple):
     sim_dir:      str
     parameters:   dict[str, float]
     geom_init:    dict[str, float]
-    elec_init:    dict[str, float]
     area_expr:    str
     constraints:  dict[str, dict[str,float]]
     devices:      dict[str, str]
@@ -51,7 +50,6 @@ def operational_amplifier( pdk_cfg: str, ckt_cfg: str, net: str
                 | pdk['defaults']  \
                 | ckt['parameters']['testbench']
     geom_init   = ckt['parameters']['geometrical']
-    elec_init   = ckt['parameters']['electrical']
     area_expr   = ckt['parameters']['area']
 
     constraints = pdk['constraints']
@@ -76,7 +74,6 @@ def operational_amplifier( pdk_cfg: str, ckt_cfg: str, net: str
                                       , sim_dir      = sim_dir
                                       , parameters   = parameters
                                       , geom_init    = geom_init
-                                      , elec_init    = elec_init
                                       , area_expr    = area_expr
                                       , constraints  = constraints
                                       , devices      = devices

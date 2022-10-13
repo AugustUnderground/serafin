@@ -118,8 +118,11 @@ def offset( dcmatch: pd.DataFrame, offset_params: dict[str, str]
                , 'totalOutput.dcOp':     'voff_syst'
                } | offset_params
 
-    left     = [c for c in col_ids if c not in list(dcmatch.columns)]
-    offset_  = dcmatch[list(col_ids.keys())].rename(columns = col_ids)
+    left     = [ cn for co,cn in col_ids.items()
+                    if co not in list(dcmatch.columns) ]
+    right    = [ c for c in col_ids.keys() if c in list(dcmatch.columns) ]
+
+    offset_  = dcmatch[right].rename(columns = col_ids)
     offset   = pd.concat( [ offset_
                           , pd.DataFrame( np.zeros((1,len(left)))
                                         , columns = left)]

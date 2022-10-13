@@ -79,7 +79,7 @@ def from_dict(d: dict[str, float]) -> pd.DataFrame:
     return pd.DataFrame.from_dict({k: [v] for k,v in d.items()})
 
 def to_dict(df: pd.DataFrame) -> dict[str, float]:
-    return {k: v[0] for k,v in df.to_dict().items()}
+    return {k: v[0] for k,v in df.to_dict(orient = 'list').items()}
 
 PERFORMANCE_PARAMETERS: dict[str,str] = { 'area':       'Estimated Area'
                                         , 'a_0':        'DC Loop Gain'

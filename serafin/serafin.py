@@ -62,13 +62,15 @@ def operational_amplifier( pdk_cfg: str, ckt_cfg: str, net: str
     dcop_params = dict( reduce( or_
                               , [ { f'{op_pre}{d}{op_suf}:{op}': f'{d}_{op}'
                                     for op in dc_opps }
-                                  for d in devices.keys() ] ) )
+                                  for d,t in devices.items()
+                                  if t not in  ["CAP", "RES"] ] ) )
 
     of_devs     = pdk['devices']['dcmatch']
     offs_params = dict( reduce( or_
                               , [ { f'{of["prefix"]}{d}{of["suffix"]}' : f'{d}_{of["reference"]}'
                                     for of in of_devs[t] }
-                                  for d,t in devices.items() ] ) )
+                                  for d,t in devices.items() 
+                                  if t not in  ["CAP", "RES"] ] ) )
 
     op_amp      = OperationalAmplifier( session      = session
                                       , sim_dir      = sim_dir

@@ -4,6 +4,7 @@ from   functools        import reduce
 from   operator         import or_
 from   shutil           import rmtree
 from   typing           import NamedTuple
+import warnings
 import errno
 import yaml
 import numpy            as np
@@ -118,19 +119,51 @@ def random_sizing(op: OperationalAmplifier) -> pd.DataFrame:
     return sizing
 
 def _current_sizing(op: OperationalAmplifier) -> dict[str,float]:
+    """
+    Get current sizing parameters from netlist in active session as dict
+    """
     return ps.get_parameters(op.session, list(op.geom_init.keys()))
 
 def current_sizing(op: OperationalAmplifier) -> pd.DataFrame:
+    """
+    Get current sizing parameters from netlist in active session
+    """
     return from_dict(_current_sizing(op))
+
+def _set_paramters(op: OperationalAmplifier, sizing: pd.DataFrame) -> bool:
+    cols  = sorted(list(sizing.columns))
+    lmin  = op.constraints['length']['min']
+    lmax  = op.constraints['length']['max']
+    wmin  = op.constraints['width']['min']
+    wmax  = op.constraints['width']['max']
+    mmin  = 1
+    mmax  = 42
+    mins  = np.array([ lmin if c.startswith('L') else
+                       wmax if c.startswith('W') else
+                       mmin for c in cols ])
+    maxs  = np.array([ lmax if c.startswith('L') else
+                       wmax if c.startswith('W') else
+                       mmax for c in cols ])
+    vals  = np.clip(sizing.values[0], mins, maxs)[None,:]
+    sizes = to_dict(pd.DataFrame(vals, columns = cols))
+    ret   = ps.set_parameters(op.session, sizes)
+
+    if not ret:
+        msg = f'spectre failed to set sizing parameters with non-zero exit code {ret}.'
+        raise(IOError(errno.EIO, os.strerror(errno.EIO), msg))
+
+    return sizing.equals(sizes)
 
 def evaluate( op: OperationalAmplifier, sizing: pd.DataFrame = None
             ) -> pd.DataFrame:
+    """
+    Evaluate the operational amplifier with a given sizing
+    """
 
     if sizing is not None:
-        ret = ps.set_parameters(op.session, to_dict(sizing))
+        ret = _set_paramters(op, sizing)
         if not ret:
-            msg = f'spectre failed to set sizing parameters with non-zero exit code {ret}.'
-            raise(IOError(errno.EIO, os.strerror(errno.EIO), msg))
+            warnings.warn('Clipped sizing', RuntimeWarning)
 
     results = ps.run_all(op.session)
 
@@ -145,6 +178,9 @@ def evaluate( op: OperationalAmplifier, sizing: pd.DataFrame = None
 def extract_performance( op: OperationalAmplifier
                        , results: dict[str, pd.DataFrame]
                        ) -> pd.DataFrame:
+    """
+    Extract performance from simulation results
+    """
     vdd     = op.parameters['vdd']
     dev     = op.parameters['dev']
     dcmatch = offset(results['dcmatch'], op.offs_params)

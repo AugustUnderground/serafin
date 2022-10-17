@@ -227,10 +227,12 @@ def out_swing_ac( ac: pd.DataFrame, A3dB: float, vdd: float = 1.8
     cols   = ['v_ih', 'v_il']
     vicm   = ac['vicm'].values
     out_ac = db20(ac['OUT'].values)
-    vil_ac = (vicm[np.argmin(np.abs(out_ac[vicm <= 0.0] - A3dB))] + (vdd / 2.0)
-             ).real.item()
-    vih_ac = (vicm[np.argmin(np.abs(out_ac[vicm >= 0.0] - A3dB))] + (vdd / 2.0)
-             ).real.item()
+    leq_0  = out_ac[vicm <= 0.0]
+    geq_0  = out_ac[vicm >= 0.0]
+    vil_ac = (vicm[np.argmin(np.abs(leq_0 - A3dB))] + (vdd / 2.0)
+             ).real.item() if leq_0.size > 0 else 0.0
+    vih_ac = (vicm[np.argmin(np.abs(geq_0 - A3dB))] + (vdd / 2.0)
+             ).real.item() if geq_0.size > 0 else 0.0
     swing  = pd.DataFrame(np.array([[vih_ac, vil_ac ]]), columns = cols)
     return swing
 

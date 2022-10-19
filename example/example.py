@@ -7,7 +7,7 @@ from multiprocessing.dummy import Pool
 
 # MAKRE SURE `include: path` is updated in `example/gpdk180.yml`
 
-pdk = './example/gpdk180.yml'
+pdk = './example/gpdk090.yml'
 net = './example/sym.scs'
 ckt = './example/sym.yml'
 num = 10
@@ -38,9 +38,10 @@ with Pool(num) as pl:
 toc = time.time()
 print(f'Creating took {toc - tic}s')
 
-tic = time.time()
-with Pool(num) as pl:
-    sizes = pl.map(sf.random_sizing, syms)
-    perfs = pd.concat(pl.starmap(sf.evaluate, zip(syms, sizes)), ignore_index=True)
-toc = time.time()
-print(f'Creating took {toc - tic}s')
+for i in range(10):
+    tic = time.time()
+    with Pool(num) as pl:
+        sizes = pl.map(sf.random_sizing, syms)
+        perfs = pd.concat(pl.starmap(sf.evaluate, zip(syms, sizes)), ignore_index=True)
+    toc = time.time()
+    print(f'{i}: Creating took {toc - tic}s')

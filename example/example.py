@@ -7,28 +7,28 @@ from multiprocessing.dummy import Pool
 
 # MAKRE SURE `include: path` is updated in `example/gpdk180.yml`
 
-pdk = '/home/moldenhauert/.circus/pdk/xt018.yml'
-ckt = '/home/moldenhauert/.circus/ckt/sym.yml'
-net = '/home/moldenhauert/.circus/pdk/xt018/sym.scs'
+pdk = './example/gpdk090.yml'
+net = './example/sym.scs'
+ckt = './example/sym.yml'
 num = 10
 
-# ## Single
-# sym = sf.operational_amplifier(pdk, ckt, net)
-# sf.current_sizing(sym)
-# size = sf.random_sizing(sym)
-# prf = sf.evaluate(sym,size)
+## Single
+sym = sf.operational_amplifier(pdk, ckt, net)
+sf.current_sizing(sym)
+size = sf.random_sizing(sym)
+prf = sf.evaluate(sym,size)
 
-# def test_perf(i):
-#     tic = time.time()
-#     sz  = sf.random_sizing(sym)
-#     prf = sf.evaluate(sym,sz)
-#     toc = time.time()
-#     took = toc - tic
-#     print(f'Iteration {i} took {took}s')
-#     return took
+def test_perf(i):
+    tic = time.time()
+    sz  = sf.random_sizing(sym)
+    prf = sf.evaluate(sym,sz)
+    toc = time.time()
+    took = toc - tic
+    print(f'Iteration {i} took {took}s')
+    return took
 
-# times = np.array([ test_perf(i) for i in range(10) ])
-# print(f'Average: {np.mean(times):.3}s')
+times = np.array([ test_perf(i) for i in range(10) ])
+print(f'Average: {np.mean(times):.3}s')
 
 ## Parallel
 

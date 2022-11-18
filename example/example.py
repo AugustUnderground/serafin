@@ -11,6 +11,7 @@ pdk = './example/gpdk090.yml'
 net = './example/sym.scs'
 ckt = './example/sym.yml'
 num = 10
+numW = 15
 
 ## Single
 sym = sf.operational_amplifier(pdk, ckt, net)
@@ -32,7 +33,7 @@ print(f'Average: {np.mean(times):.3}s')
 
 ## Parallel
 tic = time.time()
-with Pool(num) as pl:
+with Pool(numW) as pl:
     args  = zip(num * [pdk], num * [ckt], num * [net])
     syms  = pl.starmap(sf.operational_amplifier, args)
 toc = time.time()
@@ -40,7 +41,7 @@ print(f'Creating took {toc - tic}s')
 
 for i in range(10):
     tic = time.time()
-    with Pool(num) as pl:
+    with Pool(numW) as pl:
         sizes = pl.map(sf.random_sizing, syms)
         perfs = pd.concat(pl.starmap(sf.evaluate, zip(syms, sizes)), ignore_index=True)
     toc = time.time()

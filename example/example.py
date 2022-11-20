@@ -31,6 +31,21 @@ times = np.array([ test_perf(i) for i in range(10) ])
 print(f'Average: {np.mean(times):.3}s')
 
 ## Parallel
+
+sizes_df = pd.DataFrame()
+perfs_df = pd.DataFrame()
+
+def test_perf_parallel(op, numWorkers):
+    tic = time.time()
+    with Pool(numWorkers) as pl:
+        sz = pl.map(sf.random_sizing, op)
+        prf = pd.concat(pl.starmap(sf.evaluate, zip(op, sz)), ignore_index=True)
+    toc = time.time()
+
+    took = toc - tic
+
+    return took, sz, prf
+
 tic = time.time()
 with Pool(num) as pl:
     args  = zip(num * [pdk], num * [ckt], num * [net])
@@ -39,9 +54,17 @@ toc = time.time()
 print(f'Creating took {toc - tic}s')
 
 for i in range(10):
-    tic = time.time()
-    with Pool(num) as pl:
-        sizes = pl.map(sf.random_sizing, syms)
-        perfs = pd.concat(pl.starmap(sf.evaluate, zip(syms, sizes)), ignore_index=True)
-    toc = time.time()
-    print(f'{i}: Creating took {toc - tic}s')
+    times, sizes, perfs = test_perf_parallel(syms, num)
+    sizes_df = pd.concat([sizes_df, pd.concat(sizes)])
+    perfs_df = pd.concat([perfs_df, perfs])
+
+    print(f'{i}: Creating {num} simulations took {times}s')
+
+sizes_df = sizes_df.reset_index(drop=True)
+perfs_df = perfs_df.reset_index(drop=True)
+
+print(sizes_df)
+print(perfs_df)
+
+
+ 

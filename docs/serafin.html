@@ -29,88 +29,40 @@
 </summary>
 <pre><code class="python">&#34;&#34;&#34; Single-Ended Operational Amplifier Characterization &#34;&#34;&#34;
 
-from   functools       import reduce
-from   operator        import or_
-from   tempfile        import mkdtemp
-from   shutil          import copyfile
-from   collections.abc import Iterable
-from   typing          import NamedTuple, Union
-import os
+from   functools        import reduce
+from   operator         import or_
+from   shutil           import rmtree
+from   typing           import NamedTuple
+import warnings
+import errno
 import yaml
-from   scipy           import interpolate
-import numpy           as np
-import pandas          as pd
-import pyspectre       as ps
-from   pyspectre.core  import Session
+import numpy            as np
+import pandas           as pd
+import pyspectre        as ps
+
+from .util              import *
 
 class OperationalAmplifier(NamedTuple):
     &#34;&#34;&#34;
     Single Ended Operational Amplifier
     &#34;&#34;&#34;
-    session: Iterable[Session]
-    sim_dir: str
-    parameters: dict[str, float]
-    geometrical: dict[str, float]
-    electrical: dict[str, float]
-    area_expr: str
-    devices: dict[str, str]
-    op_params: dict[str, str]
-    of_params: dict[str, str]
+    session:      ps.Session
+    sim_dir:      str
+    parameters:   dict[str, float]
+    geom_init:    dict[str, float]
+    area_expr:    str
+    constraints:  dict[str, dict[str,float]]
+    devices:      dict[str, str]
+    dcop_params:  dict[str, str]
+    offs_params:  dict[str, str]
+    performances: dict[str, str]
 
     def __del__(self):
         ps.stop_session(self.session, remove_raw = True)
+        rmtree(self.sim_dir)
 
-def _setup_dir(pdk_cfg: dict, net_scs: str, ckt_cfg: dict) -&gt; str:
-    &#34;&#34;&#34;
-    Setup a temporary simulation directory with testbench and subckt ready to go.
-    &#34;&#34;&#34;
-
-    cwd    = os.path.dirname(os.path.abspath(__file__))
-    op_id  = os.path.basename(net_scs).split(&#39;.&#39;)[0]
-    usr_id = os.getlogin()
-
-    with open(net_scs, mode = &#39;r&#39;, encoding = &#39;utf-8&#39;) as net_h:
-        net = net_h.read()
-
-    includes = &#39;\n&#39;.join( [ f&#39;include &#34;{p[&#34;path&#34;]}&#34; section={p[&#34;section&#34;]}&#39;
-                            for p in pdk_cfg.get(&#39;include&#39;, {}) ] )
-
-    defaults  =  ckt_cfg.get( &#39;parameters&#39;, {}).get(&#39;testbench&#39;, {}
-                           ) | pdk_cfg.get(&#39;testbench&#39;, {})
-
-    tb_params = &#39;parameters &#39; \
-              + &#39; &#39;.join([ f&#39;{p}={v}&#39; for p,v in defaults.items() ])
-
-    op_params = &#39;parameters &#39; \
-              + &#39; &#39;.join([ f&#39;{p}={v}&#39;
-                           for p,v in ckt_cfg.get( &#39;parameters&#39;, {}
-                                                ).get( &#39;geometrical&#39;
-                                                     , {} ).items() ] )
-
-    area      = ckt_cfg.get(&#39;parameters&#39;, {}).get(&#39;area&#39;, &#39;0.0&#39;)
-    ae_params = f&#39;parameters area={area}&#39; if area != &#39;0.0&#39; else &#39;&#39;
-
-    op_pre    = pdk_cfg[&#39;devices&#39;][&#39;dcop&#39;][&#39;prefix&#39;]
-    op_suf    = pdk_cfg[&#39;devices&#39;][&#39;dcop&#39;][&#39;suffix&#39;]
-    op_par    = pdk_cfg[&#39;devices&#39;][&#39;dcop&#39;][&#39;parameters&#39;]
-    saves     = &#39;save &#39; \
-              + &#39;\\\n\t&#39;.join([ f&#39;{op_pre}*{op_suf}:{param}&#39;
-                                for param in op_par ])
-
-    subckt    = &#39;\n\n&#39;.join([ includes, tb_params, op_params, ae_params
-                            , net, saves ])
-
-    tmp_dir   = mkdtemp(prefix = f&#39;{usr_id}_{op_id}_&#39;)
-
-    with open(f&#39;{tmp_dir}/op.scs&#39;, &#39;w&#39;,  encoding = &#39;utf-8&#39;) as sub_h:
-        sub_h.write(subckt)
-
-    copyfile(f&#39;{cwd}/resource/testbench.scs&#39;, f&#39;{tmp_dir}/tb.scs&#39;)
-
-    return tmp_dir
-
-def make_op_amp( pdk_cfg: str, ckt_cfg: str, net: str, num: int = 1
-               ) -&gt; OperationalAmplifier:
+def operational_amplifier( pdk_cfg: str, ckt_cfg: str, net: str
+                         ) -&gt; OperationalAmplifier:
 
     with open(ckt_cfg, mode = &#39;r&#39;, encoding = &#39;utf-8&#39;) as ckt_h:
         ckt = yaml.load(ckt_h, Loader=yaml.FullLoader)
@@ -118,215 +70,170 @@ def make_op_amp( pdk_cfg: str, ckt_cfg: str, net: str, num: int = 1
     with open(pdk_cfg, mode = &#39;r&#39;, encoding = &#39;utf-8&#39;) as pdk_h:
         pdk = yaml.load(pdk_h, Loader=yaml.FullLoader)
 
-    sim_dir     = _setup_dir(pdk, net, ckt)
+    sim_dir     = setup_dir(pdk, net, ckt)
+    net_path    = f&#39;{sim_dir}/tb.scs&#39;
+    raw_path    = f&#39;{sim_dir}/op.raw&#39;
 
-    session     = ps.start_n_sessions( f&#39;{sim_dir}/tb.scs&#39;
-                                     , raw_path = f&#39;{sim_dir}/op.raw&#39;
-                                     , num      = num
-                                     , )
+    session     = ps.start_session(net_path, raw_path = raw_path)
 
-    parameters  = pdk[&#39;testbench&#39;]  \
-                | pdk[&#39;defaults&#39;] \
+    parameters  = pdk[&#39;testbench&#39;] \
+                | pdk[&#39;defaults&#39;]  \
                 | ckt[&#39;parameters&#39;][&#39;testbench&#39;]
-    geometrical = ckt[&#39;parameters&#39;][&#39;geometrical&#39;]
-    electrical  = ckt[&#39;parameters&#39;][&#39;electrical&#39;]
+    geom_init   = ckt[&#39;parameters&#39;][&#39;geometrical&#39;]
     area_expr   = ckt[&#39;parameters&#39;][&#39;area&#39;]
-    devices     = { d[&#39;id&#39;]: d[&#39;type&#39;] for d in ckt[&#39;devices&#39;] }
 
+    constraints = pdk[&#39;constraints&#39;]
+
+    devices     = { d[&#39;id&#39;]: d[&#39;type&#39;] for d in ckt[&#39;devices&#39;] }
     dc_opps     = pdk[&#39;devices&#39;][&#39;dcop&#39;][&#39;parameters&#39;]
     op_pre      = pdk[&#39;devices&#39;][&#39;dcop&#39;][&#39;prefix&#39;]
     op_suf      = pdk[&#39;devices&#39;][&#39;dcop&#39;][&#39;suffix&#39;]
-    op_params   = dict( reduce( or_
+
+    dcop_params = dict( reduce( or_
                               , [ { f&#39;{op_pre}{d}{op_suf}:{op}&#39;: f&#39;{d}_{op}&#39;
                                     for op in dc_opps }
-                                  for d in devices.keys() ] ) )
+                                  for d,t in devices.items()
+                                  if t not in  [&#34;CAP&#34;, &#34;RES&#34;] ] ) )
 
     of_devs     = pdk[&#39;devices&#39;][&#39;dcmatch&#39;]
-    of_params   = dict( reduce( or_
+    offs_params = dict( reduce( or_
                               , [ { f&#39;{of[&#34;prefix&#34;]}{d}{of[&#34;suffix&#34;]}&#39; : f&#39;{d}_{of[&#34;reference&#34;]}&#39;
                                     for of in of_devs[t] }
-                                  for d,t in devices.items() ] ) )
+                                  for d,t in devices.items() 
+                                  if t not in  [&#34;CAP&#34;, &#34;RES&#34;] ] ) )
 
-    op_amp      = OperationalAmplifier( session     = session
-                                      , sim_dir     = sim_dir
-                                      , parameters  = parameters
-                                      , geometrical = geometrical
-                                      , electrical  = electrical
-                                      , area_expr   = area_expr
-                                      , devices     = devices
-                                      , op_params   = op_params
-                                      , of_params   = of_params
+    op_amp      = OperationalAmplifier( session      = session
+                                      , sim_dir      = sim_dir
+                                      , parameters   = parameters
+                                      , geom_init    = geom_init
+                                      , area_expr    = area_expr
+                                      , constraints  = constraints
+                                      , devices      = devices
+                                      , dcop_params  = dcop_params
+                                      , offs_params  = offs_params
+                                      , performances = PERFORMANCE_PARAMETERS
                                       , )
     return op_amp
 
-def _find_closest_idx(array: np.array, value: float) -&gt; int:
-    return np.argmin(np.abs(array - value))
+def initial_sizing(op: OperationalAmplifier) -&gt; pd.DataFrame:
+    return from_dict(op.geom_init)
 
-def _db20(x: Union[float, np.array]) -&gt; Union[float, np.array]:
-    return np.log10(np.abs(x)) * 20.0
+def random_sizing(op: OperationalAmplifier) -&gt; pd.DataFrame:
+    keys   = list(op.geom_init.keys())
+    l_ids  = [k for k in keys if k.startswith(&#39;L&#39;)]
+    w_ids  = [k for k in keys if k.startswith(&#39;W&#39;)]
+    m_ids  = [k for k in keys if k.startswith(&#39;M&#39;)]
+    l_num  = len(l_ids)
+    w_num  = len(w_ids)
+    m_num  = len(m_ids)
 
-def _estimated_area(op: OperationalAmplifier) -&gt; dict[str, float]:
-    return { &#39;area&#39;: eval(op.area_expr, {}, op.geometrical.copy()) }
+    l_min  = op.constraints[&#39;length&#39;][&#39;min&#39;]
+    l_max  = op.constraints[&#39;length&#39;][&#39;max&#39;]
+    l_grid = op.constraints[&#39;length&#39;][&#39;grid&#39;]
+    ls     = np.random.choice(np.arange(l_min, l_max, l_grid), (1, l_num))
 
-def _offset( op: OperationalAmplifier, dcmatch: pd.DataFrame
-           ) -&gt; dict[str, float]:
-    voff_stat = dcmatch[&#39;totalOutput.sigmaOut&#39;].values[0].item()
-    voff_syst = dcmatch[&#39;totalOutput.dcOp&#39;].values[0].item()
-    offset    = { op.of_params[of]: dcmatch[of].values.item()
-                  for of in dcmatch.columns if of in op.of_params.keys() }
-    return { &#39;perf&#39; : { &#39;voff_stat&#39;: voff_stat
-                      , &#39;voff_syst&#39;: voff_syst }
-           , &#39;offset&#39;: offset }
+    w_min  = op.constraints[&#39;width&#39;][&#39;min&#39;]
+    w_max  = op.constraints[&#39;width&#39;][&#39;max&#39;]
+    w_grid = op.constraints[&#39;width&#39;][&#39;grid&#39;]
+    ws     = np.random.choice(np.arange(w_min, w_max, w_grid), (1, w_num))
 
-def _stability(stb: pd.DataFrame) -&gt; dict[str, float]:
-    loop_gain = stb[&#39;loopGain&#39;].values
-    freq      = stb[&#39;freq&#39;].values
-    gain      = _db20(loop_gain)
-    phase     = np.angle(loop_gain, deg = True)
-    a0db      = gain[0].item()
-    a3db      = a0db - 3.0
-    a0_idx    = _find_closest_idx(gain, 0.0)
-    f0db      = freq[a0_idx].real.item()
-    f0_idx    = _find_closest_idx(freq, f0db)
-    ph0_idx   = _find_closest_idx(phase, 0.0)
-    pm        = phase[f0_idx]
-    cof       = freq[ph0_idx].real.item()
-    gm        = gain[ph0_idx]
-    return { &#39;a_0&#39;: a0db
-           , &#39;ugbw&#39;: f0db
-           , &#39;pm&#39;: pm
-           , &#39;gm&#39;: gm
-           , &#39;cof&#39;: cof }
+    m_min  = 1
+    m_max  = 20
+    m_grid = 1
+    ms     = np.random.choice(np.arange(m_min, m_max, m_grid), (1, m_num))
 
-def _transient( tran: pd.DataFrame, vs: float = 0.5 ) -&gt; dict[str, float]:
-    time          = tran[&#39;time&#39;].values
-    out           = tran[&#39;OUT&#39;].values
+    sizing = pd.DataFrame( np.hstack((ls, ws, ms))
+                         , columns = (l_ids + w_ids + m_ids))
 
-    idx_100       = _find_closest_idx(time, 100e-9)
-    idx_090       = _find_closest_idx(time, 90e-6)
-    idx_050       = _find_closest_idx(time, 50e-6)
-    idx_099       = _find_closest_idx(time, 99.9e-6)
+    return sizing
 
-    rising        = out[idx_100:idx_050]
-    falling       = out[(idx_050+1):idx_099]
+def _current_sizing(op: OperationalAmplifier) -&gt; dict[str,float]:
+    &#34;&#34;&#34;
+    Get current sizing parameters from netlist in active session as dict
+    &#34;&#34;&#34;
+    return ps.get_parameters(op.session, list(op.geom_init.keys()))
 
-    lower         = (0.1 * vs) - (vs / 2.0)
-    upper         = (0.9 * vs) - (vs / 2.0)
+def current_sizing(op: OperationalAmplifier) -&gt; pd.DataFrame:
+    &#34;&#34;&#34;
+    Get current sizing parameters from netlist in active session
+    &#34;&#34;&#34;
+    return from_dict(_current_sizing(op))
 
-    p1_rising     = time[_find_closest_idx(rising, lower)]
-    p2_rising     = time[_find_closest_idx(rising, upper)]
+def _set_paramters(op: OperationalAmplifier, sizing: pd.DataFrame) -&gt; bool:
+    cols  = sorted(list(sizing.columns))
+    lmin  = op.constraints[&#39;length&#39;][&#39;min&#39;]
+    lmax  = op.constraints[&#39;length&#39;][&#39;max&#39;]
+    wmin  = op.constraints[&#39;width&#39;][&#39;min&#39;]
+    wmax  = op.constraints[&#39;width&#39;][&#39;max&#39;]
+    mmin  = 1
+    mmax  = 42
+    mins  = np.array([ lmin if c.startswith(&#39;L&#39;) else
+                       wmax if c.startswith(&#39;W&#39;) else
+                       mmin for c in cols ])
+    maxs  = np.array([ lmax if c.startswith(&#39;L&#39;) else
+                       wmax if c.startswith(&#39;W&#39;) else
+                       mmax for c in cols ])
+    vals  = np.clip(sizing.values[0], mins, maxs)[None,:]
+    sizes = to_dict(pd.DataFrame(vals, columns = cols))
+    ret   = ps.set_parameters(op.session, sizes)
 
-    sr_rising     = (upper - lower) / (p2_rising - p1_rising)
+    if not ret:
+        msg = f&#39;spectre failed to set sizing parameters with non-zero exit code {ret}.&#39;
+        raise(IOError(errno.EIO, os.strerror(errno.EIO), msg))
 
-    p1_falling    = time[_find_closest_idx(falling, upper)]
-    p2_falling    = time[_find_closest_idx(falling, lower)]
+    return sizing.equals(sizes)
 
-    sr_falling    = (lower - upper) / (p2_falling - p1_falling)
+def evaluate( op: OperationalAmplifier, sizing: pd.DataFrame = None
+            ) -&gt; pd.DataFrame:
+    &#34;&#34;&#34;
+    Evaluate the operational amplifier with a given sizing
+    &#34;&#34;&#34;
 
-    os_rising     = 100 * (np.max(rising) - out[idx_050]) / (out[idx_050] - out[idx_100])
-    os_falling    = 100 * (np.min(falling) - out[idx_090]) / (out[idx_090] - out[idx_050])
+    if sizing is not None:
+        ret = _set_paramters(op, sizing)
+        if not ret:
+            warnings.warn(&#39;Clipped sizing&#39;, RuntimeWarning)
 
-    return { &#39;sr_r&#39;: sr_rising
-           , &#39;sr_f&#39;: sr_falling
-           , &#39;os_r&#39;: os_rising
-           , &#39;os_f&#39;: os_falling }
-
-def _output_referred_noise( noise: pd.DataFrame ) -&gt; dict[str, float]:
-    ids  = [&#39;vn_1Hz&#39;, &#39;vn_10Hz&#39;, &#39;vn_100Hz&#39;, &#39;vn_1kHz&#39;, &#39;vn_10kHz&#39;, &#39;vn_100kHz&#39;]
-    fs   = [1e0, 1e1, 1e2, 1e3, 1e4, 1e5]
-    freq = noise[&#39;freq&#39;].values
-    out  = noise[&#39;out&#39;].values
-    vn   = interpolate.pchip_interpolate(freq, out, fs)
-    return dict(zip(ids,vn))
-
-def _out_swing_dc( dc1: pd.DataFrame, vdd: float = 1.8, dev: float = 1.0e-4
-                 ) -&gt; dict[str, float]:
-    out       = dc1[&#39;OUT&#39;].values
-    out_ideal = dc1[&#39;OUT_IDEAL&#39;].values
-    vid       = dc1[&#39;vid&#39;].values
-    out_dc    = (out - out[_find_closest_idx(vid, 0.0)])
-    dev_rel   = np.abs(out_dc - out_ideal) / vdd
-    vil_idx   = np.argmin(np.abs(dev_rel[vid &lt;= 0.0] - dev))
-    vih_idx   = np.argmin(np.abs(dev_rel[vid &gt;= 0.0] - dev))
-    vol_dc    = (out_dc[vil_idx] + (vdd / 2.0))
-    voh_dc    = (out_dc[vih_idx] + (vdd / 2.0))
-    return { &#39;v_oh&#39;: voh_dc
-           , &#39;v_ol&#39;: vol_dc }
-
-def _rejection( xf: pd.DataFrame ) -&gt; dict[str, float]:
-    vid_db   = _db20(xf[&#39;VID&#39;].values)
-    vicm_db  = _db20(xf[&#39;VICM&#39;].values)
-    vsupp_db = _db20(xf[&#39;VSUPP&#39;].values)
-    vsupn_db = _db20(xf[&#39;VSUPN&#39;].values)
-    psrr_p   = (vid_db - vsupp_db)[0]
-    psrr_n   = (vid_db - vsupn_db)[0]
-    cmrr     = (vid_db - vicm_db)[0]
-    return { &#39;psrr_p&#39;: psrr_p
-           , &#39;psrr_n&#39;: psrr_n
-           , &#39;cmrr&#39;: cmrr }
-
-def _out_swing_ac( ac: pd.DataFrame, A3dB: float, vdd: float = 1.8
-                 ) -&gt; dict[str, float]:
-    vicm   = ac[&#39;vicm&#39;].values
-    out_ac = _db20(ac[&#39;OUT&#39;].values)
-    vil_ac = (vicm[np.argmin(np.abs(out_ac[vicm &lt;= 0.0] - A3dB))] + (vdd / 2.0)).real
-    vih_ac = (vicm[np.argmin(np.abs(out_ac[vicm &gt;= 0.0] - A3dB))] + (vdd / 2.0)).real
-    return { &#39;v_ih&#39;: vih_ac
-           , &#39;v_il&#39;: vil_ac }
-
-def _output_current( dc3: pd.DataFrame, dc4: pd.DataFrame
-                   ) -&gt; dict[str, float]:
-    i_out_min = dc3[&#39;DUT:O&#39;].values[0]
-    i_out_max = dc4[&#39;DUT:O&#39;].values[0]
-    return { &#39;i_out_min&#39;: i_out_min
-           , &#39;i_out_max&#39;: i_out_max }
-
-def _operating_point( op: OperationalAmplifier
-                    , dcop: pd.DataFrame
-                    ) -&gt; dict[str, float]:
-    idd = dcop[&#39;DUT:VDD&#39;].values.item()
-    iss = dcop[&#39;DUT:VSS&#39;].values.item()
-    ops = { op.op_params[o]: dcop[o].values.item()
-            for o in dcop.columns
-            if o in op.op_params.keys() }
-    return { &#39;perf&#39;: { &#39;idd&#39;: idd
-                     , &#39;iss&#39;: iss }
-           , &#39;op&#39;: ops }
-
-def evaluate(op: OperationalAmplifier) -&gt; dict[str, float]:
     results = ps.run_all(op.session)
-    area    = _estimated_area(op)
-    dcmatch = _offset(op, results[&#39;dcmatch&#39;])
-    stb     = _stability(results[&#39;stb&#39;])
-    tran    = _transient( results[&#39;tran&#39;]
-                        , op.parameters[&#39;vs&#39;] )
-    noise   = _output_referred_noise(results[&#39;noise&#39;])
-    dc1     = _out_swing_dc( results[&#39;dc1&#39;]
-                           , op.parameters[&#39;vdd&#39;]
-                           , op.parameters[&#39;dev&#39;] )
-    ac      = _out_swing_ac( results[&#39;ac&#39;]
-                           , (stb[&#39;a_0&#39;] - 3.0)
-                           , op.parameters[&#39;vdd&#39;] )
-    xf      = _rejection(results[&#39;xf&#39;])
-    dc34    = _output_current( results[&#39;dc3&#39;]
-                             , results[&#39;dc4&#39;] )
-    dcop    = _operating_point( op
-                              , results[&#39;dcop&#39;])
 
-    perf    = area \
-            | dcmatch[&#39;perf&#39;] \
-            | stb \
-            | tran \
-            | noise \
-            | dc1 \
-            | ac \
-            | xf \
-            | dc34 \
-            | dcop[&#39;perf&#39;]
+    if not bool(results):
+        msg = &#39;Simulations Failed.&#39;
+        raise(IOError(errno.EIO, os.strerror(errno.EIO), msg))
 
-    return { &#39;performance&#39;: perf
-           , &#39;operating_point&#39;: dcop[&#39;op&#39;]
-           , &#39;offset&#39;: dcmatch[&#39;offset&#39;] }</code></pre>
+    perf = extract_performance(op, results)
+
+    return perf
+
+def extract_performance( op: OperationalAmplifier
+                       , results: dict[str, pd.DataFrame]
+                       ) -&gt; pd.DataFrame:
+    &#34;&#34;&#34;
+    Extract performance from simulation results
+    &#34;&#34;&#34;
+    vdd     = op.parameters[&#39;vdd&#39;]
+    dev     = op.parameters[&#39;dev&#39;]
+    dcmatch = offset(results[&#39;dcmatch&#39;], op.offs_params)
+    stb     = stability(results[&#39;stb&#39;])
+    tran    = transient(results[&#39;tran&#39;])
+    noise   = output_referred_noise(results[&#39;noise&#39;])
+    dc1     = out_swing_dc(results[&#39;dc1&#39;], vdd, dev)
+    ac      = out_swing_ac(results[&#39;ac&#39;], stb[&#39;a_0&#39;].values.item() - 3.0, vdd)
+    xf      = rejection(results[&#39;xf&#39;])
+    dc34    = output_current(results[&#39;dc3&#39;], results[&#39;dc4&#39;])
+    dcop    = operating_point(results[&#39;dcop&#39;], op.dcop_params)
+    area    = estimated_area(op.area_expr, current_sizing(op))
+    perf    = pd.concat( [ area
+                         , dcmatch
+                         , stb
+                         , tran
+                         , noise
+                         , dc1
+                         , ac
+                         , xf
+                         , dc34
+                         , dcop ]
+                       , axis = 1 )
+    return perf</code></pre>
 </details>
 </section>
 <section>
@@ -336,53 +243,96 @@ def evaluate(op: OperationalAmplifier) -&gt; dict[str, float]:
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="serafin.serafin.evaluate"><code class="name flex">
-<span>def <span class="ident">evaluate</span></span>(<span>op: <a title="serafin.serafin.OperationalAmplifier" href="#serafin.serafin.OperationalAmplifier">OperationalAmplifier</a>) ‑> dict[str, float]</span>
+<dt id="serafin.serafin.current_sizing"><code class="name flex">
+<span>def <span class="ident">current_sizing</span></span>(<span>op: <a title="serafin.serafin.OperationalAmplifier" href="#serafin.serafin.OperationalAmplifier">OperationalAmplifier</a>) ‑> pandas.core.frame.DataFrame</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Get current sizing parameters from netlist in active session</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def evaluate(op: OperationalAmplifier) -&gt; dict[str, float]:
-    results = ps.run_all(op.session)
-    area    = _estimated_area(op)
-    dcmatch = _offset(op, results[&#39;dcmatch&#39;])
-    stb     = _stability(results[&#39;stb&#39;])
-    tran    = _transient( results[&#39;tran&#39;]
-                        , op.parameters[&#39;vs&#39;] )
-    noise   = _output_referred_noise(results[&#39;noise&#39;])
-    dc1     = _out_swing_dc( results[&#39;dc1&#39;]
-                           , op.parameters[&#39;vdd&#39;]
-                           , op.parameters[&#39;dev&#39;] )
-    ac      = _out_swing_ac( results[&#39;ac&#39;]
-                           , (stb[&#39;a_0&#39;] - 3.0)
-                           , op.parameters[&#39;vdd&#39;] )
-    xf      = _rejection(results[&#39;xf&#39;])
-    dc34    = _output_current( results[&#39;dc3&#39;]
-                             , results[&#39;dc4&#39;] )
-    dcop    = _operating_point( op
-                              , results[&#39;dcop&#39;])
-
-    perf    = area \
-            | dcmatch[&#39;perf&#39;] \
-            | stb \
-            | tran \
-            | noise \
-            | dc1 \
-            | ac \
-            | xf \
-            | dc34 \
-            | dcop[&#39;perf&#39;]
-
-    return { &#39;performance&#39;: perf
-           , &#39;operating_point&#39;: dcop[&#39;op&#39;]
-           , &#39;offset&#39;: dcmatch[&#39;offset&#39;] }</code></pre>
+<pre><code class="python">def current_sizing(op: OperationalAmplifier) -&gt; pd.DataFrame:
+    &#34;&#34;&#34;
+    Get current sizing parameters from netlist in active session
+    &#34;&#34;&#34;
+    return from_dict(_current_sizing(op))</code></pre>
 </details>
 </dd>
-<dt id="serafin.serafin.make_op_amp"><code class="name flex">
-<span>def <span class="ident">make_op_amp</span></span>(<span>pdk_cfg: str, ckt_cfg: str, net: str, num: int = 1) ‑> <a title="serafin.serafin.OperationalAmplifier" href="#serafin.serafin.OperationalAmplifier">OperationalAmplifier</a></span>
+<dt id="serafin.serafin.evaluate"><code class="name flex">
+<span>def <span class="ident">evaluate</span></span>(<span>op: <a title="serafin.serafin.OperationalAmplifier" href="#serafin.serafin.OperationalAmplifier">OperationalAmplifier</a>, sizing: pandas.core.frame.DataFrame = None) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Evaluate the operational amplifier with a given sizing</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def evaluate( op: OperationalAmplifier, sizing: pd.DataFrame = None
+            ) -&gt; pd.DataFrame:
+    &#34;&#34;&#34;
+    Evaluate the operational amplifier with a given sizing
+    &#34;&#34;&#34;
+
+    if sizing is not None:
+        ret = _set_paramters(op, sizing)
+        if not ret:
+            warnings.warn(&#39;Clipped sizing&#39;, RuntimeWarning)
+
+    results = ps.run_all(op.session)
+
+    if not bool(results):
+        msg = &#39;Simulations Failed.&#39;
+        raise(IOError(errno.EIO, os.strerror(errno.EIO), msg))
+
+    perf = extract_performance(op, results)
+
+    return perf</code></pre>
+</details>
+</dd>
+<dt id="serafin.serafin.extract_performance"><code class="name flex">
+<span>def <span class="ident">extract_performance</span></span>(<span>op: <a title="serafin.serafin.OperationalAmplifier" href="#serafin.serafin.OperationalAmplifier">OperationalAmplifier</a>, results: dict[str, pandas.core.frame.DataFrame]) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Extract performance from simulation results</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def extract_performance( op: OperationalAmplifier
+                       , results: dict[str, pd.DataFrame]
+                       ) -&gt; pd.DataFrame:
+    &#34;&#34;&#34;
+    Extract performance from simulation results
+    &#34;&#34;&#34;
+    vdd     = op.parameters[&#39;vdd&#39;]
+    dev     = op.parameters[&#39;dev&#39;]
+    dcmatch = offset(results[&#39;dcmatch&#39;], op.offs_params)
+    stb     = stability(results[&#39;stb&#39;])
+    tran    = transient(results[&#39;tran&#39;])
+    noise   = output_referred_noise(results[&#39;noise&#39;])
+    dc1     = out_swing_dc(results[&#39;dc1&#39;], vdd, dev)
+    ac      = out_swing_ac(results[&#39;ac&#39;], stb[&#39;a_0&#39;].values.item() - 3.0, vdd)
+    xf      = rejection(results[&#39;xf&#39;])
+    dc34    = output_current(results[&#39;dc3&#39;], results[&#39;dc4&#39;])
+    dcop    = operating_point(results[&#39;dcop&#39;], op.dcop_params)
+    area    = estimated_area(op.area_expr, current_sizing(op))
+    perf    = pd.concat( [ area
+                         , dcmatch
+                         , stb
+                         , tran
+                         , noise
+                         , dc1
+                         , ac
+                         , xf
+                         , dc34
+                         , dcop ]
+                       , axis = 1 )
+    return perf</code></pre>
+</details>
+</dd>
+<dt id="serafin.serafin.initial_sizing"><code class="name flex">
+<span>def <span class="ident">initial_sizing</span></span>(<span>op: <a title="serafin.serafin.OperationalAmplifier" href="#serafin.serafin.OperationalAmplifier">OperationalAmplifier</a>) ‑> pandas.core.frame.DataFrame</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -390,8 +340,21 @@ def evaluate(op: OperationalAmplifier) -&gt; dict[str, float]:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def make_op_amp( pdk_cfg: str, ckt_cfg: str, net: str, num: int = 1
-               ) -&gt; OperationalAmplifier:
+<pre><code class="python">def initial_sizing(op: OperationalAmplifier) -&gt; pd.DataFrame:
+    return from_dict(op.geom_init)</code></pre>
+</details>
+</dd>
+<dt id="serafin.serafin.operational_amplifier"><code class="name flex">
+<span>def <span class="ident">operational_amplifier</span></span>(<span>pdk_cfg: str, ckt_cfg: str, net: str) ‑> <a title="serafin.serafin.OperationalAmplifier" href="#serafin.serafin.OperationalAmplifier">OperationalAmplifier</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def operational_amplifier( pdk_cfg: str, ckt_cfg: str, net: str
+                         ) -&gt; OperationalAmplifier:
 
     with open(ckt_cfg, mode = &#39;r&#39;, encoding = &#39;utf-8&#39;) as ckt_h:
         ckt = yaml.load(ckt_h, Loader=yaml.FullLoader)
@@ -399,46 +362,89 @@ def evaluate(op: OperationalAmplifier) -&gt; dict[str, float]:
     with open(pdk_cfg, mode = &#39;r&#39;, encoding = &#39;utf-8&#39;) as pdk_h:
         pdk = yaml.load(pdk_h, Loader=yaml.FullLoader)
 
-    sim_dir     = _setup_dir(pdk, net, ckt)
+    sim_dir     = setup_dir(pdk, net, ckt)
+    net_path    = f&#39;{sim_dir}/tb.scs&#39;
+    raw_path    = f&#39;{sim_dir}/op.raw&#39;
 
-    session     = ps.start_n_sessions( f&#39;{sim_dir}/tb.scs&#39;
-                                     , raw_path = f&#39;{sim_dir}/op.raw&#39;
-                                     , num      = num
-                                     , )
+    session     = ps.start_session(net_path, raw_path = raw_path)
 
-    parameters  = pdk[&#39;testbench&#39;]  \
-                | pdk[&#39;defaults&#39;] \
+    parameters  = pdk[&#39;testbench&#39;] \
+                | pdk[&#39;defaults&#39;]  \
                 | ckt[&#39;parameters&#39;][&#39;testbench&#39;]
-    geometrical = ckt[&#39;parameters&#39;][&#39;geometrical&#39;]
-    electrical  = ckt[&#39;parameters&#39;][&#39;electrical&#39;]
+    geom_init   = ckt[&#39;parameters&#39;][&#39;geometrical&#39;]
     area_expr   = ckt[&#39;parameters&#39;][&#39;area&#39;]
-    devices     = { d[&#39;id&#39;]: d[&#39;type&#39;] for d in ckt[&#39;devices&#39;] }
 
+    constraints = pdk[&#39;constraints&#39;]
+
+    devices     = { d[&#39;id&#39;]: d[&#39;type&#39;] for d in ckt[&#39;devices&#39;] }
     dc_opps     = pdk[&#39;devices&#39;][&#39;dcop&#39;][&#39;parameters&#39;]
     op_pre      = pdk[&#39;devices&#39;][&#39;dcop&#39;][&#39;prefix&#39;]
     op_suf      = pdk[&#39;devices&#39;][&#39;dcop&#39;][&#39;suffix&#39;]
-    op_params   = dict( reduce( or_
+
+    dcop_params = dict( reduce( or_
                               , [ { f&#39;{op_pre}{d}{op_suf}:{op}&#39;: f&#39;{d}_{op}&#39;
                                     for op in dc_opps }
-                                  for d in devices.keys() ] ) )
+                                  for d,t in devices.items()
+                                  if t not in  [&#34;CAP&#34;, &#34;RES&#34;] ] ) )
 
     of_devs     = pdk[&#39;devices&#39;][&#39;dcmatch&#39;]
-    of_params   = dict( reduce( or_
+    offs_params = dict( reduce( or_
                               , [ { f&#39;{of[&#34;prefix&#34;]}{d}{of[&#34;suffix&#34;]}&#39; : f&#39;{d}_{of[&#34;reference&#34;]}&#39;
                                     for of in of_devs[t] }
-                                  for d,t in devices.items() ] ) )
+                                  for d,t in devices.items() 
+                                  if t not in  [&#34;CAP&#34;, &#34;RES&#34;] ] ) )
 
-    op_amp      = OperationalAmplifier( session     = session
-                                      , sim_dir     = sim_dir
-                                      , parameters  = parameters
-                                      , geometrical = geometrical
-                                      , electrical  = electrical
-                                      , area_expr   = area_expr
-                                      , devices     = devices
-                                      , op_params   = op_params
-                                      , of_params   = of_params
+    op_amp      = OperationalAmplifier( session      = session
+                                      , sim_dir      = sim_dir
+                                      , parameters   = parameters
+                                      , geom_init    = geom_init
+                                      , area_expr    = area_expr
+                                      , constraints  = constraints
+                                      , devices      = devices
+                                      , dcop_params  = dcop_params
+                                      , offs_params  = offs_params
+                                      , performances = PERFORMANCE_PARAMETERS
                                       , )
     return op_amp</code></pre>
+</details>
+</dd>
+<dt id="serafin.serafin.random_sizing"><code class="name flex">
+<span>def <span class="ident">random_sizing</span></span>(<span>op: <a title="serafin.serafin.OperationalAmplifier" href="#serafin.serafin.OperationalAmplifier">OperationalAmplifier</a>) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def random_sizing(op: OperationalAmplifier) -&gt; pd.DataFrame:
+    keys   = list(op.geom_init.keys())
+    l_ids  = [k for k in keys if k.startswith(&#39;L&#39;)]
+    w_ids  = [k for k in keys if k.startswith(&#39;W&#39;)]
+    m_ids  = [k for k in keys if k.startswith(&#39;M&#39;)]
+    l_num  = len(l_ids)
+    w_num  = len(w_ids)
+    m_num  = len(m_ids)
+
+    l_min  = op.constraints[&#39;length&#39;][&#39;min&#39;]
+    l_max  = op.constraints[&#39;length&#39;][&#39;max&#39;]
+    l_grid = op.constraints[&#39;length&#39;][&#39;grid&#39;]
+    ls     = np.random.choice(np.arange(l_min, l_max, l_grid), (1, l_num))
+
+    w_min  = op.constraints[&#39;width&#39;][&#39;min&#39;]
+    w_max  = op.constraints[&#39;width&#39;][&#39;max&#39;]
+    w_grid = op.constraints[&#39;width&#39;][&#39;grid&#39;]
+    ws     = np.random.choice(np.arange(w_min, w_max, w_grid), (1, w_num))
+
+    m_min  = 1
+    m_max  = 20
+    m_grid = 1
+    ms     = np.random.choice(np.arange(m_min, m_max, m_grid), (1, m_num))
+
+    sizing = pd.DataFrame( np.hstack((ls, ws, ms))
+                         , columns = (l_ids + w_ids + m_ids))
+
+    return sizing</code></pre>
 </details>
 </dd>
 </dl>
@@ -448,7 +454,7 @@ def evaluate(op: OperationalAmplifier) -&gt; dict[str, float]:
 <dl>
 <dt id="serafin.serafin.OperationalAmplifier"><code class="flex name class">
 <span>class <span class="ident">OperationalAmplifier</span></span>
-<span>(</span><span>session: collections.abc.Iterable[pyspectre.core.Session], sim_dir: str, parameters: dict[str, float], geometrical: dict[str, float], electrical: dict[str, float], area_expr: str, devices: dict[str, str], op_params: dict[str, str], of_params: dict[str, str])</span>
+<span>(</span><span>session: pyspectre.core.Session, sim_dir: str, parameters: dict[str, float], geom_init: dict[str, float], area_expr: str, constraints: dict[str, dict[str, float]], devices: dict[str, str], dcop_params: dict[str, str], offs_params: dict[str, str], performances: dict[str, str])</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Single Ended Operational Amplifier</p></div>
@@ -460,18 +466,20 @@ def evaluate(op: OperationalAmplifier) -&gt; dict[str, float]:
     &#34;&#34;&#34;
     Single Ended Operational Amplifier
     &#34;&#34;&#34;
-    session: Iterable[Session]
-    sim_dir: str
-    parameters: dict[str, float]
-    geometrical: dict[str, float]
-    electrical: dict[str, float]
-    area_expr: str
-    devices: dict[str, str]
-    op_params: dict[str, str]
-    of_params: dict[str, str]
+    session:      ps.Session
+    sim_dir:      str
+    parameters:   dict[str, float]
+    geom_init:    dict[str, float]
+    area_expr:    str
+    constraints:  dict[str, dict[str,float]]
+    devices:      dict[str, str]
+    dcop_params:  dict[str, str]
+    offs_params:  dict[str, str]
+    performances: dict[str, str]
 
     def __del__(self):
-        ps.stop_session(self.session, remove_raw = True)</code></pre>
+        ps.stop_session(self.session, remove_raw = True)
+        rmtree(self.sim_dir)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -481,33 +489,37 @@ def evaluate(op: OperationalAmplifier) -&gt; dict[str, float]:
 <dl>
 <dt id="serafin.serafin.OperationalAmplifier.area_expr"><code class="name">var <span class="ident">area_expr</span> : str</code></dt>
 <dd>
+<div class="desc"><p>Alias for field number 4</p></div>
+</dd>
+<dt id="serafin.serafin.OperationalAmplifier.constraints"><code class="name">var <span class="ident">constraints</span> : dict[str, dict[str, float]]</code></dt>
+<dd>
 <div class="desc"><p>Alias for field number 5</p></div>
+</dd>
+<dt id="serafin.serafin.OperationalAmplifier.dcop_params"><code class="name">var <span class="ident">dcop_params</span> : dict[str, str]</code></dt>
+<dd>
+<div class="desc"><p>Alias for field number 7</p></div>
 </dd>
 <dt id="serafin.serafin.OperationalAmplifier.devices"><code class="name">var <span class="ident">devices</span> : dict[str, str]</code></dt>
 <dd>
 <div class="desc"><p>Alias for field number 6</p></div>
 </dd>
-<dt id="serafin.serafin.OperationalAmplifier.electrical"><code class="name">var <span class="ident">electrical</span> : dict[str, float]</code></dt>
-<dd>
-<div class="desc"><p>Alias for field number 4</p></div>
-</dd>
-<dt id="serafin.serafin.OperationalAmplifier.geometrical"><code class="name">var <span class="ident">geometrical</span> : dict[str, float]</code></dt>
+<dt id="serafin.serafin.OperationalAmplifier.geom_init"><code class="name">var <span class="ident">geom_init</span> : dict[str, float]</code></dt>
 <dd>
 <div class="desc"><p>Alias for field number 3</p></div>
 </dd>
-<dt id="serafin.serafin.OperationalAmplifier.of_params"><code class="name">var <span class="ident">of_params</span> : dict[str, str]</code></dt>
+<dt id="serafin.serafin.OperationalAmplifier.offs_params"><code class="name">var <span class="ident">offs_params</span> : dict[str, str]</code></dt>
 <dd>
 <div class="desc"><p>Alias for field number 8</p></div>
-</dd>
-<dt id="serafin.serafin.OperationalAmplifier.op_params"><code class="name">var <span class="ident">op_params</span> : dict[str, str]</code></dt>
-<dd>
-<div class="desc"><p>Alias for field number 7</p></div>
 </dd>
 <dt id="serafin.serafin.OperationalAmplifier.parameters"><code class="name">var <span class="ident">parameters</span> : dict[str, float]</code></dt>
 <dd>
 <div class="desc"><p>Alias for field number 2</p></div>
 </dd>
-<dt id="serafin.serafin.OperationalAmplifier.session"><code class="name">var <span class="ident">session</span> : collections.abc.Iterable[pyspectre.core.Session]</code></dt>
+<dt id="serafin.serafin.OperationalAmplifier.performances"><code class="name">var <span class="ident">performances</span> : dict[str, str]</code></dt>
+<dd>
+<div class="desc"><p>Alias for field number 9</p></div>
+</dd>
+<dt id="serafin.serafin.OperationalAmplifier.session"><code class="name">var <span class="ident">session</span> : pyspectre.core.Session</code></dt>
 <dd>
 <div class="desc"><p>Alias for field number 0</p></div>
 </dd>
@@ -533,8 +545,12 @@ def evaluate(op: OperationalAmplifier) -&gt; dict[str, float]:
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
+<li><code><a title="serafin.serafin.current_sizing" href="#serafin.serafin.current_sizing">current_sizing</a></code></li>
 <li><code><a title="serafin.serafin.evaluate" href="#serafin.serafin.evaluate">evaluate</a></code></li>
-<li><code><a title="serafin.serafin.make_op_amp" href="#serafin.serafin.make_op_amp">make_op_amp</a></code></li>
+<li><code><a title="serafin.serafin.extract_performance" href="#serafin.serafin.extract_performance">extract_performance</a></code></li>
+<li><code><a title="serafin.serafin.initial_sizing" href="#serafin.serafin.initial_sizing">initial_sizing</a></code></li>
+<li><code><a title="serafin.serafin.operational_amplifier" href="#serafin.serafin.operational_amplifier">operational_amplifier</a></code></li>
+<li><code><a title="serafin.serafin.random_sizing" href="#serafin.serafin.random_sizing">random_sizing</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>
@@ -543,12 +559,13 @@ def evaluate(op: OperationalAmplifier) -&gt; dict[str, float]:
 <h4><code><a title="serafin.serafin.OperationalAmplifier" href="#serafin.serafin.OperationalAmplifier">OperationalAmplifier</a></code></h4>
 <ul class="two-column">
 <li><code><a title="serafin.serafin.OperationalAmplifier.area_expr" href="#serafin.serafin.OperationalAmplifier.area_expr">area_expr</a></code></li>
+<li><code><a title="serafin.serafin.OperationalAmplifier.constraints" href="#serafin.serafin.OperationalAmplifier.constraints">constraints</a></code></li>
+<li><code><a title="serafin.serafin.OperationalAmplifier.dcop_params" href="#serafin.serafin.OperationalAmplifier.dcop_params">dcop_params</a></code></li>
 <li><code><a title="serafin.serafin.OperationalAmplifier.devices" href="#serafin.serafin.OperationalAmplifier.devices">devices</a></code></li>
-<li><code><a title="serafin.serafin.OperationalAmplifier.electrical" href="#serafin.serafin.OperationalAmplifier.electrical">electrical</a></code></li>
-<li><code><a title="serafin.serafin.OperationalAmplifier.geometrical" href="#serafin.serafin.OperationalAmplifier.geometrical">geometrical</a></code></li>
-<li><code><a title="serafin.serafin.OperationalAmplifier.of_params" href="#serafin.serafin.OperationalAmplifier.of_params">of_params</a></code></li>
-<li><code><a title="serafin.serafin.OperationalAmplifier.op_params" href="#serafin.serafin.OperationalAmplifier.op_params">op_params</a></code></li>
+<li><code><a title="serafin.serafin.OperationalAmplifier.geom_init" href="#serafin.serafin.OperationalAmplifier.geom_init">geom_init</a></code></li>
+<li><code><a title="serafin.serafin.OperationalAmplifier.offs_params" href="#serafin.serafin.OperationalAmplifier.offs_params">offs_params</a></code></li>
 <li><code><a title="serafin.serafin.OperationalAmplifier.parameters" href="#serafin.serafin.OperationalAmplifier.parameters">parameters</a></code></li>
+<li><code><a title="serafin.serafin.OperationalAmplifier.performances" href="#serafin.serafin.OperationalAmplifier.performances">performances</a></code></li>
 <li><code><a title="serafin.serafin.OperationalAmplifier.session" href="#serafin.serafin.OperationalAmplifier.session">session</a></code></li>
 <li><code><a title="serafin.serafin.OperationalAmplifier.sim_dir" href="#serafin.serafin.OperationalAmplifier.sim_dir">sim_dir</a></code></li>
 </ul>

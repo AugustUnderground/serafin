@@ -130,7 +130,8 @@ def current_sizing(op: OperationalAmplifier) -> pd.DataFrame:
     """
     return from_dict(_current_sizing(op))
 
-def _set_paramters(op: OperationalAmplifier, sizing: pd.DataFrame) -> bool:
+def _set_paramters( op: OperationalAmplifier, sizing: pd.DataFrame
+                  , tol: float = 1e-10 ) -> bool:
     cols  = sorted(list(sizing.columns))
     lmin  = op.constraints['length']['min']
     lmax  = op.constraints['length']['max']
@@ -139,20 +140,20 @@ def _set_paramters(op: OperationalAmplifier, sizing: pd.DataFrame) -> bool:
     mmin  = 1
     mmax  = 42
     mins  = np.array([ lmin if c.startswith('L') else
-                       wmax if c.startswith('W') else
+                       wmin if c.startswith('W') else
                        mmin for c in cols ])
     maxs  = np.array([ lmax if c.startswith('L') else
                        wmax if c.startswith('W') else
                        mmax for c in cols ])
-    vals  = np.clip(sizing.values[0], mins, maxs)[None,:]
-    sizes = to_dict(pd.DataFrame(vals, columns = cols))
-    ret   = ps.set_parameters(op.session, sizes)
+    vals  = np.clip(sizing[cols].values[0], mins, maxs)[None,:]
+    sizes = pd.DataFrame(vals, columns = cols)
+    ret   = ps.set_parameters(op.session, to_dict(sizes))
 
     if not ret:
         msg = f'spectre failed to set sizing parameters with non-zero exit code {ret}.'
         raise(IOError(errno.EIO, os.strerror(errno.EIO), msg))
 
-    return sizing.equals(sizes)
+    return np.all(np.abs(sizes[cols].values - sizing[cols].values) < tol)
 
 def evaluate( op: OperationalAmplifier, sizing: pd.DataFrame = None
             ) -> pd.DataFrame:

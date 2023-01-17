@@ -174,18 +174,21 @@ def transient( tran: pd.DataFrame, vs: float = 0.5 ) -> dict[str, float]:
     lower      = (0.1 * vs) - (vs / 2.0)
     upper      = (0.9 * vs) - (vs / 2.0)
 
+    try:
+        p1_rising  = time[find_first_idx(rising, lower, 'r')]
+        p2_rising  = time[find_first_idx(rising, upper, 'r')]
+        d_rising   = p2_rising - p1_rising
 
-    p1_rising  = time[find_first_idx(rising, lower, 'r')]
-    p2_rising  = time[find_first_idx(rising, upper, 'r')]
-    d_rising   = p2_rising - p1_rising
+        sr_rising  = (upper - lower) / d_rising if d_rising > 0 else np.nan
 
-    sr_rising  = (upper - lower) / d_rising if d_rising > 0 else np.nan
+        p1_falling = time[find_first_idx(falling, upper, 'f')]
+        p2_falling = time[find_first_idx(falling, lower, 'f')]
+        d_falling  = p2_falling - p1_falling
 
-    p1_falling = time[find_first_idx(falling, upper, 'f')]
-    p2_falling = time[find_first_idx(falling, lower, 'f')]
-    d_falling  = p2_falling - p1_falling
-
-    sr_falling = (lower - upper) / d_falling if d_falling > 0 else np.nan
+        sr_falling = (lower - upper) / d_falling if d_falling > 0 else np.nan
+    except ValueError:
+        sr_rising = np.nan
+        sr_falling = np.nan
 
     os_rising  = 100 * (np.max(rising) - out[idx_050]) / (out[idx_050] - out[idx_100])
     os_falling = 100 * (np.min(falling) - out[idx_090]) / (out[idx_090] - out[idx_050])

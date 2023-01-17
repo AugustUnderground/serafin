@@ -30,7 +30,7 @@ class OperationalAmplifier(NamedTuple):
 
     def __del__(self):
         ps.stop_session(self.session, remove_raw = False)
-        #rmtree(self.sim_dir)
+        rmtree(self.sim_dir)
 
 def operational_amplifier( pdk_cfg: str, ckt_cfg: str, net: str
                          ) -> OperationalAmplifier:

@@ -29,7 +29,7 @@ class OperationalAmplifier(NamedTuple):
     performances: dict[str, str]
 
     def __del__(self):
-        ps.stop_session(self.session, remove_raw = False)
+        ps.stop_session(self.session, remove_raw = True)
         rmtree(self.sim_dir)
 
 def operational_amplifier( pdk_cfg: str, ckt_cfg: str, net: str

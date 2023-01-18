@@ -90,32 +90,32 @@ def from_dict(d: dict[str, float]) -> pd.DataFrame:
 def to_dict(df: pd.DataFrame) -> dict[str, float]:
     return {k: v[0] for k,v in df.to_dict(orient = 'list').items()}
 
-def find_sr_r(time: np.array, values: np.array, upper: float, lower: float) -> int:
-    idx_upper = np.argwhere(values > upper)
-    idx_lower = np.argwhere(values > lower)
+def find_sr_r(times: np.array, values: np.array, upper: float, lower: float) -> int:
 
-    if np.size(idx_upper) and np.size(idx_lower):
-        rising_hi = np.min(idx_upper).item()
-        rising_lo = np.min(idx_lower).item()
+    rising_hi     = find_first_idx(values, upper, 'r')
+    rising_lo     = find_first_idx(values, lower, 'r')
 
-        sr_r = (values[rising_hi]-values[rising_lo])/(time[rising_hi]-time[rising_lo])
+    if rising_hi and rising_lo:
+        d_rising  = times[rising_hi]-times[rising_lo]
+        sr_r      = (upper - lower) / d_rising if d_rising > 0 else np.nan
     else:
-        sr_r = np.nan
+        sr_r      = np.nan
     return sr_r
 
-def find_sr_f(time: np.array, values: np.array, upper: float, lower: float) -> int:
-    flipped = np.flip(values)
-    candidate = find_first_idx(flipped, upper, 'r')
-    falling_hi = (-1* candidate) -1 if candidate else None
+def find_sr_f(times: np.array, values: np.array, upper: float, lower: float) -> int:
+    flipped       = np.flip(values)
+    candidate     = find_first_idx(flipped, upper, 'r')
+    falling_hi    = (-1* candidate) -1 if candidate else None
 
-    window = values[falling_hi:]
-    candidate = find_first_idx(window, lower, 'f')
-    falling_lo = (falling_hi + candidate) if (candidate and falling_hi) else None
+    window        = values[falling_hi:]
+    candidate     = find_first_idx(window, lower, 'f')
+    falling_lo    = (falling_hi + candidate) if (candidate and falling_hi) else None
 
     if falling_hi and falling_lo:
-        sr_f = (values[falling_lo]-values[falling_hi])/(time[falling_lo]-time[falling_hi])
+        d_falling = times[falling_lo]-times[falling_hi]
+        sr_f      = (lower - upper) / d_falling 
     else:
-        sr_f = np.nan
+        sr_f      = np.nan
     return sr_f
 
 PERFORMANCE_PARAMETERS: dict[str,str] = { 'area':       'Estimated Area'

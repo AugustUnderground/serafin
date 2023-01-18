@@ -98,7 +98,7 @@ def find_sr_r(time: np.array, values: np.array, upper: float, lower: float) -> i
         rising_hi = np.min(idx_upper)
         rising_lo = np.min(idx_lower)
 
-        sr_r = (values[rising_hi]-values(rising_lo))/(time[rising_hi]-time[rising_lo])
+        sr_r = (values[rising_hi]-values[rising_lo])/(time[rising_hi]-time[rising_lo])
     else:
         sr_r = np.nan
     return sr_r
@@ -113,7 +113,7 @@ def find_sr_f(time: np.array, values: np.array, upper: float, lower: float) -> i
     falling_lo = (falling_hi + candidate) if (candidate and falling_hi) else None
 
     if falling_hi and falling_lo:
-        sr_f = (values[falling_lo]-values(falling_hi))/(time[falling_lo]-time[falling_hi])
+        sr_f = (values[falling_lo]-values[falling_hi])/(time[falling_lo]-time[falling_hi])
     else:
         sr_f = np.nan
     return sr_f

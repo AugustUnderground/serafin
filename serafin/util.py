@@ -95,8 +95,8 @@ def find_sr_r(time: np.array, values: np.array, upper: float, lower: float) -> i
     idx_lower = np.argwhere(values > lower)
 
     if np.size(idx_upper) and np.size(idx_lower):
-        rising_hi = np.min(idx_upper)
-        rising_lo = np.min(idx_lower)
+        rising_hi = np.min(idx_upper).item()
+        rising_lo = np.min(idx_lower).item()
 
         sr_r = (values[rising_hi]-values[rising_lo])/(time[rising_hi]-time[rising_lo])
     else:

@@ -90,6 +90,34 @@ def from_dict(d: dict[str, float]) -> pd.DataFrame:
 def to_dict(df: pd.DataFrame) -> dict[str, float]:
     return {k: v[0] for k,v in df.to_dict(orient = 'list').items()}
 
+def find_sr_r(time: np.array, values: np.array, upper: float, lower: float) -> int:
+    idx_upper = np.argwhere(values > upper)
+    idx_lower = np.argwhere(values > lower)
+
+    if np.size(idx_upper) and np.size(idx_lower):
+        rising_hi = np.min(idx_upper)
+        rising_lo = np.min(idx_lower)
+
+        sr_r = (values[rising_hi]-values(rising_lo))/(time[rising_hi]-time[rising_lo])
+    else:
+        sr_r = np.nan
+    return sr_r
+
+def find_sr_f(time: np.array, values: np.array, upper: float, lower: float) -> int:
+    flipped = np.flip(values)
+    candidate = find_first_idx(flipped, upper, 'r')
+    falling_hi = (-1* candidate) -1 if candidate else None
+
+    window = values[falling_hi:]
+    candidate = find_first_idx(window, lower, 'f')
+    falling_lo = (falling_hi + candidate) if (candidate and falling_hi) else None
+
+    if falling_hi and falling_lo:
+        sr_f = (values[falling_lo]-values(falling_hi))/(time[falling_lo]-time[falling_hi])
+    else:
+        sr_f = np.nan
+    return sr_f
+
 PERFORMANCE_PARAMETERS: dict[str,str] = { 'area':       'Estimated Area'
                                         , 'a_0':        'DC Loop Gain'
                                         , 'cmrr':       'Common Mode Rejection Ratio'
@@ -177,21 +205,8 @@ def transient( tran: pd.DataFrame, vs: float = 0.5 ) -> dict[str, float]:
     lower      = (0.1 * vs) - (vs / 2.0)
     upper      = (0.9 * vs) - (vs / 2.0)
 
-    rising_lo = find_first_idx(rising, lower, 'r')
-    rising_hi = find_first_idx(rising, upper, 'r')
-    if rising_lo and rising_hi:
-        d_rising   = time_r[rising_hi] - time_r[rising_lo]
-        sr_rising  = (upper - lower) / d_rising if d_rising > 0 else np.nan
-    else:
-        sr_rising = np.nan
-
-    falling_hi = find_first_idx(falling, upper, 'f')
-    falling_lo = find_first_idx(falling, lower, 'f')
-    if falling_hi and falling_lo:
-        d_falling  = time_f[falling_lo] - time_f[falling_hi]
-        sr_falling = (lower - upper) / d_falling if d_falling > 0 else np.nan
-    else:
-        sr_falling = np.nan
+    sr_rising  = find_sr_r(time_r, rising, upper, lower)
+    sr_falling = find_sr_f(time_f, falling, upper, lower)
 
     os_rising  = 100 * (np.max(rising) - out[idx_050]) / (out[idx_050] - out[idx_100])
     os_falling = 100 * (np.min(falling) - out[idx_090]) / (out[idx_090] - out[idx_050])

@@ -113,7 +113,7 @@ def find_sr_f(times: np.array, values: np.array, upper: float, lower: float) -> 
 
     if falling_hi and falling_lo:
         d_falling = times[falling_lo]-times[falling_hi]
-        sr_f      = (lower - upper) / d_falling 
+        sr_f      = (lower - upper) / d_falling if d_falling > 0 else np.nan
     else:
         sr_f      = np.nan
     return sr_f

@@ -68,14 +68,14 @@ def transpose_dict(ds: Iterable[dict[str, float]]) -> dict[str, Iterable[float]]
 def find_closest_idx(array: np.array, value: float) -> int:
     return np.argmin(np.abs(array - value), axis = len(array.shape) - 1)
 
-def find_first_idx(array: np.array, value: float, edge: str) -> int:
+def find_first_idx(array: np.array, value: float, edge: str) -> Union[int, None]:
     if edge == 'r':
-        idx = np.min(np.argwhere(array > value))
+        indices = np.argwhere(array > value)
     elif edge == 'f':
-        idx = np.min(np.argwhere(array < value))
+        indices = np.argwhere(array < value)
     else:
-        idx = np.nan
-    return idx
+        indices = np.empty(0)
+    return np.min(indices).item() if np.size(indices) else None
 
 def db20(x: Union[float, np.array]) -> Union[float, np.array]:
     return np.log10(np.abs(x)) * 20.0
@@ -171,23 +171,26 @@ def transient( tran: pd.DataFrame, vs: float = 0.5 ) -> dict[str, float]:
     rising     = out[idx_100:idx_050]
     falling    = out[(idx_050+1):idx_099]
 
+    time_r     = time[idx_100:idx_050]
+    time_f     = time[(idx_050+1):idx_099]
+
     lower      = (0.1 * vs) - (vs / 2.0)
     upper      = (0.9 * vs) - (vs / 2.0)
 
-    try:
-        p1_rising  = time[find_first_idx(rising, lower, 'r')]
-        p2_rising  = time[find_first_idx(rising, upper, 'r')]
-        d_rising   = p2_rising - p1_rising
-
+    rising_lo = find_first_idx(rising, lower, 'r')
+    rising_hi = find_first_idx(rising, upper, 'r')
+    if rising_lo and rising_hi:
+        d_rising   = time_r[rising_hi] - time_r[rising_lo]
         sr_rising  = (upper - lower) / d_rising if d_rising > 0 else np.nan
-
-        p1_falling = time[find_first_idx(falling, upper, 'f')]
-        p2_falling = time[find_first_idx(falling, lower, 'f')]
-        d_falling  = p2_falling - p1_falling
-
-        sr_falling = (lower - upper) / d_falling if d_falling > 0 else np.nan
-    except ValueError:
+    else:
         sr_rising = np.nan
+
+    falling_hi = find_first_idx(falling, upper, 'f')
+    falling_lo = find_first_idx(falling, lower, 'f')
+    if falling_hi and falling_lo:
+        d_falling  = time_f[falling_lo] - time_f[falling_hi]
+        sr_falling = (lower - upper) / d_falling if d_falling > 0 else np.nan
+    else:
         sr_falling = np.nan
 
     os_rising  = 100 * (np.max(rising) - out[idx_050]) / (out[idx_050] - out[idx_100])

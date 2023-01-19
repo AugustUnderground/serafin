@@ -90,7 +90,7 @@ def from_dict(d: dict[str, float]) -> pd.DataFrame:
 def to_dict(df: pd.DataFrame) -> dict[str, float]:
     return {k: v[0] for k,v in df.to_dict(orient = 'list').items()}
 
-def find_sr_r(times: np.array, values: np.array, upper: float, lower: float) -> int:
+def find_sr_r(times: np.array, values: np.array, upper: float, lower: float) -> np.float:
 
     rising_hi     = find_first_idx(values, upper, 'r')
     rising_lo     = find_first_idx(values, lower, 'r')
@@ -102,7 +102,7 @@ def find_sr_r(times: np.array, values: np.array, upper: float, lower: float) -> 
         sr_r      = np.nan
     return sr_r
 
-def find_sr_f(times: np.array, values: np.array, upper: float, lower: float) -> int:
+def find_sr_f(times: np.array, values: np.array, upper: float, lower: float) -> np.float:
     flipped       = np.flip(values)
     candidate     = find_first_idx(flipped, upper, 'r')
     falling_hi    = (-1* candidate) -1 if candidate else None
@@ -173,15 +173,22 @@ def stability(stb: pd.DataFrame) -> pd.DataFrame:
     freq      = stb['freq'].values
     gain      = db20(loop_gain)
     phase     = np.angle(loop_gain, deg = True)
-    a0db      = gain[0].item()
-    a3db      = a0db - 3.0
-    a0_idx    = find_closest_idx(gain, 0.0)
-    f0db      = freq[a0_idx].real.item()
-    f0_idx    = find_closest_idx(freq, f0db)
-    ph0_idx   = find_closest_idx(phase, 0.0)
-    pm        = phase[f0_idx].item()
-    cof       = freq[ph0_idx].real.item()
-    gm        = gain[ph0_idx].item()
+    a0_idx    = find_first_idx(gain, 0.0)
+    ph0_idx   = find_first_idx(phase, 0.0)
+    if a0_idx and ph0_idx:
+        a0db      = gain[0].item()
+        a3db      = a0db - 3.0
+        f0db      = freq[a0_idx].real.item()
+        f0_idx    = find_closest_idx(freq, f0db)
+        pm        = phase[f0_idx].item()
+        cof       = freq[ph0_idx].real.item()
+        gm        = gain[ph0_idx].item()
+    else:
+        a0db      = np.nan
+        f0db      = np.nan
+        pm        = np.nan
+        gm        = np.nan
+        cof       = np.nan
     stability = pd.DataFrame( np.array([[a0db, f0db, pm, gm, cof]])
                             , columns = cols )
     return stability

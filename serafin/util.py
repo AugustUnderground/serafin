@@ -173,8 +173,8 @@ def stability(stb: pd.DataFrame) -> pd.DataFrame:
     freq      = stb['freq'].values
     gain      = db20(loop_gain)
     phase     = np.angle(loop_gain, deg = True)
-    a0_idx    = find_first_idx(gain, 0.0)
-    ph0_idx   = find_first_idx(phase, 0.0)
+    a0_idx    = find_first_idx(gain, 0.0, 'f')
+    ph0_idx   = find_first_idx(phase, 0.0, 'f')
     if a0_idx and ph0_idx:
         a0db      = gain[0].item()
         a3db      = a0db - 3.0

@@ -47,9 +47,9 @@ def operational_amplifier( pdk_cfg: str, ckt_cfg: str, net: str
 
     session     = ps.start_session(net_path, raw_path = raw_path)
 
-    parameters  = ckt['parameters']['testbench'] \
+    parameters  = pdk['defaults'] \
                 | pdk['testbench'] \
-                | pdk['defaults']
+                | ckt['parameters']['testbench']
     geom_init   = ckt['parameters']['geometrical']
     area_expr   = ckt['parameters']['area']
 
@@ -84,6 +84,8 @@ def operational_amplifier( pdk_cfg: str, ckt_cfg: str, net: str
                                       , offs_params  = offs_params
                                       , performances = PERFORMANCE_PARAMETERS
                                       , )
+    ps.set_parameters(session, parameters | geom_init)
+
     return op_amp
 
 def initial_sizing(op: OperationalAmplifier) -> pd.DataFrame:

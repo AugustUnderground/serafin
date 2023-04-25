@@ -47,9 +47,9 @@ def operational_amplifier( pdk_cfg: str, ckt_cfg: str, net: str
 
     session     = ps.start_session(net_path, raw_path = raw_path)
 
-    parameters  = pdk['testbench'] \
-                | pdk['defaults']  \
-                | ckt['parameters']['testbench']
+    parameters  = ckt['parameters']['testbench'] \
+                | pdk['testbench'] \
+                | pdk['defaults']
     geom_init   = ckt['parameters']['geometrical']
     area_expr   = ckt['parameters']['area']
 

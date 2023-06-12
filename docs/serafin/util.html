@@ -1,0 +1,847 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>serafin.util API documentation</title>
+<meta name="description" content="Single-Ended Operational Amplifier Characterization Utility functions" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>serafin.util</code></h1>
+</header>
+<section id="section-intro">
+<p>Single-Ended Operational Amplifier Characterization Utility functions</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#34;&#34;&#34; Single-Ended Operational Amplifier Characterization Utility functions &#34;&#34;&#34;
+
+import os
+from   tempfile        import mkdtemp
+from   shutil          import copyfile
+from   typing          import Union, Iterable
+from   scipy           import interpolate
+import numpy           as np
+import pandas          as pd
+
+def setup_dir(pdk_cfg: dict, net_scs: str, ckt_cfg: dict) -&gt; str:
+    &#34;&#34;&#34;
+    Setup a temporary simulation directory with testbench and subckt ready to go.
+    &#34;&#34;&#34;
+
+    cwd    = os.path.dirname(os.path.abspath(__file__))
+    op_id  = os.path.basename(net_scs).split(&#39;.&#39;)[0]
+    usr_id = os.getlogin()
+
+    with open(net_scs, mode = &#39;r&#39;, encoding = &#39;utf-8&#39;) as net_h:
+        net = net_h.read()
+
+    includes = &#39;\n&#39;.join( [ f&#39;include &#34;{p[&#34;path&#34;]}&#34; section={p[&#34;section&#34;]}&#39;
+                            for p in pdk_cfg.get(&#39;include&#39;, {}) ] )
+
+    defaults  =  ckt_cfg.get( &#39;parameters&#39;, {}).get(&#39;testbench&#39;, {}
+                           ) | pdk_cfg.get(&#39;testbench&#39;, {})
+
+    tb_params = &#39;parameters &#39; \
+              + &#39; &#39;.join([ f&#39;{p}={v}&#39; for p,v in defaults.items() ])
+
+    op_params = &#39;parameters &#39; \
+              + &#39; &#39;.join([ f&#39;{p}={v}&#39;
+                           for p,v in ckt_cfg.get( &#39;parameters&#39;, {}
+                                                ).get( &#39;geometrical&#39;
+                                                     , {} ).items() ] )
+
+    area      = ckt_cfg.get(&#39;parameters&#39;, {}).get(&#39;area&#39;, &#39;0.0&#39;)
+    ae_params = f&#39;parameters area={area}&#39; if area != &#39;0.0&#39; else &#39;&#39;
+
+    op_pre    = pdk_cfg[&#39;devices&#39;][&#39;dcop&#39;][&#39;prefix&#39;]
+    op_suf    = pdk_cfg[&#39;devices&#39;][&#39;dcop&#39;][&#39;suffix&#39;]
+    op_par    = pdk_cfg[&#39;devices&#39;][&#39;dcop&#39;][&#39;parameters&#39;]
+    saves     = &#39;save &#39; \
+              + &#39;\\\n\t&#39;.join([ f&#39;{op_pre}*{op_suf}:{param}&#39;
+                                for param in op_par ])
+
+    subckt    = &#39;\n\n&#39;.join([ includes, tb_params, op_params, ae_params
+                            , net, saves ])
+
+    tmp_dir   = mkdtemp(prefix = f&#39;{usr_id}_{op_id}_&#39;)
+
+    with open(f&#39;{tmp_dir}/op.scs&#39;, &#39;w&#39;,  encoding = &#39;utf-8&#39;) as sub_h:
+        sub_h.write(subckt)
+
+    copyfile(f&#39;{cwd}/resource/testbench.scs&#39;, f&#39;{tmp_dir}/tb.scs&#39;)
+
+    return tmp_dir
+
+def repeat_values(d: dict[str, float], n: int) -&gt; dict[str, list[float]]:
+    return { k: n * [v] for k,v in d }
+
+def transpose_dict(ds: Iterable[dict[str, float]]) -&gt; dict[str, Iterable[float]]:
+    keys = {d.keys() for d in ds}
+    vals = np.array([list(d.values()) for d in ds]).T.tolist()
+    return dict(zip(keys, vals))
+
+def find_closest_idx(array: np.array, value: float) -&gt; int:
+    return np.argmin(np.abs(array - value), axis = len(array.shape) - 1)
+
+def find_first_idx(array: np.array, value: float, edge: str) -&gt; Union[int, None]:
+    if edge == &#39;r&#39;:
+        indices = np.argwhere(array &gt; value)
+    elif edge == &#39;f&#39;:
+        indices = np.argwhere(array &lt; value)
+    else:
+        indices = np.empty(0)
+    return np.min(indices).item() if np.size(indices) else None
+
+def db20(x: Union[float, np.array]) -&gt; Union[float, np.array]:
+    return np.log10(np.abs(x)) * 20.0
+
+def nan_frame(cols: Iterable[str]) -&gt; pd.DataFrame:
+    length = len(cols)
+    return pd.DataFrame(np.full((1,length), np.NaN), columns = cols)
+
+def from_dict(d: dict[str, float]) -&gt; pd.DataFrame:
+    return pd.DataFrame.from_dict({k: [v] for k,v in d.items()})
+
+def to_dict(df: pd.DataFrame) -&gt; dict[str, float]:
+    return {k: v[0] for k,v in df.to_dict(orient = &#39;list&#39;).items()}
+
+def find_sr_r(times: np.array, values: np.array, upper: float, lower: float) -&gt; np.float:
+
+    rising_hi     = find_first_idx(values, upper, &#39;r&#39;)
+    rising_lo     = find_first_idx(values, lower, &#39;r&#39;)
+
+    if rising_hi and rising_lo:
+        d_rising  = times[rising_hi]-times[rising_lo]
+        sr_r      = (upper - lower) / d_rising if d_rising &gt; 0 else np.nan
+    else:
+        sr_r      = np.nan
+    return sr_r
+
+def find_sr_f(times: np.array, values: np.array, upper: float, lower: float) -&gt; np.float:
+    flipped       = np.flip(values)
+    candidate     = find_first_idx(flipped, upper, &#39;r&#39;)
+    falling_hi    = (-1* candidate) -1 if candidate else None
+
+    window        = values[falling_hi:]
+    candidate     = find_first_idx(window, lower, &#39;f&#39;)
+    falling_lo    = (falling_hi + candidate) if (candidate and falling_hi) else None
+
+    if falling_hi and falling_lo:
+        d_falling = times[falling_lo]-times[falling_hi]
+        sr_f      = (lower - upper) / d_falling if d_falling &gt; 0 else np.nan
+    else:
+        sr_f      = np.nan
+    return sr_f
+
+PERFORMANCE_PARAMETERS: dict[str,str] = { &#39;area&#39;:       &#39;Estimated Area&#39;
+                                        , &#39;a_0&#39;:        &#39;DC Loop Gain&#39;
+                                        , &#39;cmrr&#39;:       &#39;Common Mode Rejection Ratio&#39;
+                                        , &#39;cof&#39;:        &#39;Cross-Over Frequency&#39;
+                                        , &#39;gm&#39;:         &#39;Gain Margin&#39;
+                                        , &#39;i_out_max&#39;:  &#39;Maximum output Current&#39;
+                                        , &#39;i_out_min&#39;:  &#39;Minimum output Current&#39;
+                                        , &#39;idd&#39;:        &#39;Current Consumption&#39;
+                                        , &#39;iss&#39;:        &#39;Current Consumption&#39;
+                                        , &#39;os_f&#39;:       &#39;Overshoot Falling&#39;
+                                        , &#39;os_r&#39;:       &#39;Overshoot Rising&#39;
+                                        , &#39;pm&#39;:         &#39;Phase Margin&#39;
+                                        , &#39;psrr_n&#39;:     &#39;Power Supply Rejection Ratio&#39;
+                                        , &#39;psrr_p&#39;:     &#39;Power Supply Rejection Ratio&#39;
+                                        , &#39;sr_f&#39;:       &#39;Slew Rate Falling&#39;
+                                        , &#39;sr_r&#39;:       &#39;Slew Rate Rising&#39;
+                                        , &#39;ugbw&#39;:       &#39;Unity Gain Bandwidth&#39;
+                                        , &#39;v_ih&#39;:       &#39;Input Voltage Hight&#39;
+                                        , &#39;v_il&#39;:       &#39;Input Voltage Low&#39;
+                                        , &#39;v_oh&#39;:       &#39;Output Voltage High&#39;
+                                        , &#39;v_ol&#39;:       &#39;Output Voltage Low&#39;
+                                        , &#39;vn_1Hz&#39;:     &#39;Output Referred Noise @ 1Hz&#39;
+                                        , &#39;vn_10Hz&#39;:    &#39;Output Referred Noise @ 10Hz&#39;
+                                        , &#39;vn_100Hz&#39;:   &#39;Output Referred Noise @ 100Hz&#39;
+                                        , &#39;vn_1kHz&#39;:    &#39;Output Referred Noise @ 1kHz&#39;
+                                        , &#39;vn_10kHz&#39;:   &#39;Output Referred Noise @ 10kHz&#39;
+                                        , &#39;vn_100kHz&#39;:  &#39;Output Referred Noise @ 100kHz&#39;
+                                        , &#39;voff_stat&#39;:  &#39;Statistical Offset&#39;
+                                        , &#39;voff_syst&#39;:  &#39;Systematic Offset&#39;
+                                        , }
+
+def offset( dcmatch: pd.DataFrame, offset_params: dict[str, str]
+          ) -&gt; pd.DataFrame:
+    col_ids  = { &#39;totalOutput.sigmaOut&#39;: &#39;voff_stat&#39;
+               , &#39;totalOutput.dcOp&#39;:     &#39;voff_syst&#39;
+               } | offset_params
+
+    left     = [ cn for co,cn in col_ids.items()
+                    if co not in list(dcmatch.columns) ]
+    right    = [ c for c in col_ids.keys() if c in list(dcmatch.columns) ]
+
+    offset_  = dcmatch[right].rename(columns = col_ids)
+    offset   = pd.concat( [ offset_
+                          , pd.DataFrame( np.zeros((1,len(left)))
+                                        , columns = left)]
+                        , axis = 1
+                        , ) if left else offset_
+    return offset
+
+def stability(stb: pd.DataFrame) -&gt; pd.DataFrame:
+    cols      = [&#39;a_0&#39;, &#39;ugbw&#39;, &#39;pm&#39;, &#39;gm&#39;, &#39;cof&#39;]
+    loop_gain = stb[&#39;loopGain&#39;].values
+    freq      = stb[&#39;freq&#39;].values
+    gain      = db20(loop_gain)
+    phase     = np.angle(loop_gain, deg = True)
+    a0_idx    = find_first_idx(gain, 0.0, &#39;f&#39;)
+    ph0_idx   = find_first_idx(phase, 0.0, &#39;f&#39;)
+    if a0_idx and ph0_idx:
+        a0db      = gain[0].item()
+        a3db      = a0db - 3.0
+        f0db      = freq[a0_idx].real.item()
+        f0_idx    = find_closest_idx(freq, f0db)
+        pm        = phase[f0_idx].item()
+        cof       = freq[ph0_idx].real.item()
+        gm        = gain[ph0_idx].item()
+    else:
+        a0db      = np.nan
+        f0db      = np.nan
+        pm        = np.nan
+        gm        = np.nan
+        cof       = np.nan
+    stability = pd.DataFrame( np.array([[a0db, f0db, pm, gm, cof]])
+                            , columns = cols )
+    return stability
+
+def transient( tran: pd.DataFrame, vs: float = 0.5 ) -&gt; dict[str, float]:
+    cols       = [&#39;sr_r&#39;, &#39;sr_f&#39;, &#39;os_r&#39;, &#39;os_f&#39;]
+    time       = tran[&#39;time&#39;].values
+    out        = tran[&#39;OUT&#39;].values
+
+    idx_100    = find_closest_idx(time, 100e-9)
+    idx_090    = find_closest_idx(time, 90e-6)
+    idx_050    = find_closest_idx(time, 50e-6)
+    idx_099    = find_closest_idx(time, 99.9e-6)
+
+    rising     = out[idx_100:idx_050]
+    falling    = out[(idx_050+1):idx_099]
+
+    time_r     = time[idx_100:idx_050]
+    time_f     = time[(idx_050+1):idx_099]
+
+    lower      = (0.1 * vs) - (vs / 2.0)
+    upper      = (0.9 * vs) - (vs / 2.0)
+
+    sr_rising  = find_sr_r(time_r, rising, upper, lower)
+    sr_falling = find_sr_f(time_f, falling, upper, lower)
+
+    os_rising  = 100 * (np.max(rising) - out[idx_050]) / (out[idx_050] - out[idx_100])
+    os_falling = 100 * (np.min(falling) - out[idx_090]) / (out[idx_090] - out[idx_050])
+
+    transient  =  pd.DataFrame( np.array([[ sr_rising, sr_falling
+                                          , os_rising, os_falling]])
+                              , columns = cols )
+    return transient
+
+def output_referred_noise(noise: pd.DataFrame) -&gt; pd.DataFrame:
+    cols  = [&#39;vn_1Hz&#39;, &#39;vn_10Hz&#39;, &#39;vn_100Hz&#39;, &#39;vn_1kHz&#39;, &#39;vn_10kHz&#39;, &#39;vn_100kHz&#39;]
+    fs    = [1e0, 1e1, 1e2, 1e3, 1e4, 1e5]
+    freq  = noise[&#39;freq&#39;].values
+    out   = noise[&#39;out&#39;].values
+    vn    = interpolate.pchip_interpolate(freq, out, fs).reshape(1,-1)
+    noise = pd.DataFrame(vn, columns = cols)
+    return noise
+
+def out_swing_dc( dc1: pd.DataFrame, vdd: float = 1.8, dev: float = 1.0e-4
+                ) -&gt; pd.DataFrame:
+    cols      = [&#39;v_oh&#39;, &#39;v_ol&#39;]
+    out       = dc1[&#39;OUT&#39;].values
+    out_ideal = dc1[&#39;OUT_IDEAL&#39;].values
+    vid       = dc1[&#39;vid&#39;].values
+    out_dc    = (out - out[find_closest_idx(vid, 0.0)])
+    dev_rel   = np.abs(out_dc - out_ideal) / vdd
+    vil_idx   = np.argmin(np.abs(dev_rel[vid &lt;= 0.0] - dev))
+    vih_idx   = np.argmin(np.abs(dev_rel[vid &gt;= 0.0] - dev))
+    vol_dc    = (out_dc[vil_idx] + (vdd / 2.0)).item()
+    voh_dc    = (out_dc[vih_idx] + (vdd / 2.0)).item()
+    swing     =  pd.DataFrame(np.array([[voh_dc, vol_dc]]), columns = cols)
+    return swing
+
+def rejection(xf: pd.DataFrame) -&gt; pd.DataFrame:
+    cols     = [&#39;psrr_p&#39;, &#39;psrr_n&#39;, &#39;cmrr&#39;]
+    vid_db   = db20(xf[&#39;VID&#39;].values)
+    vicm_db  = db20(xf[&#39;VICM&#39;].values)
+    vsupp_db = db20(xf[&#39;VSUPP&#39;].values)
+    vsupn_db = db20(xf[&#39;VSUPN&#39;].values)
+    psrr_p   = (vid_db - vsupp_db)[0].item()
+    psrr_n   = (vid_db - vsupn_db)[0].item()
+    cmrr     = (vid_db - vicm_db)[0].item()
+    ratios   = pd.DataFrame( np.array([[psrr_p, psrr_n, cmrr]])
+                           , columns = cols )
+    return ratios
+
+def out_swing_ac( ac: pd.DataFrame, A3dB: float, vdd: float = 1.8
+                 ) -&gt; pd.DataFrame:
+    cols   = [&#39;v_ih&#39;, &#39;v_il&#39;]
+    vicm   = ac[&#39;vicm&#39;].values
+    out_ac = db20(ac[&#39;OUT&#39;].values)
+    leq_0  = out_ac[vicm &lt;= 0.0]
+    geq_0  = out_ac[vicm &gt;= 0.0]
+    vil_ac = (vicm[np.argmin(np.abs(leq_0 - A3dB))] + (vdd / 2.0)
+             ).real.item() if leq_0.size &gt; 0 else 0.0
+    vih_ac = (vicm[np.argmin(np.abs(geq_0 - A3dB))] + (vdd / 2.0)
+             ).real.item() if geq_0.size &gt; 0 else 0.0
+    swing  = pd.DataFrame(np.array([[vih_ac, vil_ac ]]), columns = cols)
+    return swing
+
+def output_current(dc3: pd.DataFrame, dc4: pd.DataFrame) -&gt; pd.DataFrame:
+    cols      = [&#39;i_out_min&#39;, &#39;i_out_max&#39;]
+    i_out_min = dc3[&#39;DUT:O&#39;].values[0].item()
+    i_out_max = dc4[&#39;DUT:O&#39;].values[0].item()
+    current   = pd.DataFrame( np.array([[i_out_min, i_out_max]])
+                            , columns = cols )
+    return current
+
+def operating_point( dcop: pd.DataFrame, dcop_params: dict[str, str]
+                   ) -&gt; pd.DataFrame:
+    col_ids = { &#39;DUT:VDD&#39;: &#39;idd&#39;, &#39;DUT:VSS&#39;: &#39;iss&#39;
+              } | dcop_params
+    dcop    = dcop[list(col_ids.keys())].rename(columns = col_ids)
+    return dcop
+
+def estimated_area(expr: str, sizing: pd.DataFrame) -&gt; pd.DataFrame:
+    params = to_dict(sizing)
+    area   = np.array([[eval(expr, {}, params)]])
+    return pd.DataFrame(area, columns = [&#39;area&#39;])</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="serafin.util.db20"><code class="name flex">
+<span>def <span class="ident">db20</span></span>(<span>x: Union[float, <built-in function array>]) ‑> Union[float, <built-in function array>]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def db20(x: Union[float, np.array]) -&gt; Union[float, np.array]:
+    return np.log10(np.abs(x)) * 20.0</code></pre>
+</details>
+</dd>
+<dt id="serafin.util.estimated_area"><code class="name flex">
+<span>def <span class="ident">estimated_area</span></span>(<span>expr: str, sizing: pandas.core.frame.DataFrame) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def estimated_area(expr: str, sizing: pd.DataFrame) -&gt; pd.DataFrame:
+    params = to_dict(sizing)
+    area   = np.array([[eval(expr, {}, params)]])
+    return pd.DataFrame(area, columns = [&#39;area&#39;])</code></pre>
+</details>
+</dd>
+<dt id="serafin.util.find_closest_idx"><code class="name flex">
+<span>def <span class="ident">find_closest_idx</span></span>(<span>array: <built-in function array>, value: float) ‑> int</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def find_closest_idx(array: np.array, value: float) -&gt; int:
+    return np.argmin(np.abs(array - value), axis = len(array.shape) - 1)</code></pre>
+</details>
+</dd>
+<dt id="serafin.util.find_first_idx"><code class="name flex">
+<span>def <span class="ident">find_first_idx</span></span>(<span>array: <built-in function array>, value: float, edge: str) ‑> Optional[int]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def find_first_idx(array: np.array, value: float, edge: str) -&gt; Union[int, None]:
+    if edge == &#39;r&#39;:
+        indices = np.argwhere(array &gt; value)
+    elif edge == &#39;f&#39;:
+        indices = np.argwhere(array &lt; value)
+    else:
+        indices = np.empty(0)
+    return np.min(indices).item() if np.size(indices) else None</code></pre>
+</details>
+</dd>
+<dt id="serafin.util.find_sr_f"><code class="name flex">
+<span>def <span class="ident">find_sr_f</span></span>(<span>times: <built-in function array>, values: <built-in function array>, upper: float, lower: float) ‑> float</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def find_sr_f(times: np.array, values: np.array, upper: float, lower: float) -&gt; np.float:
+    flipped       = np.flip(values)
+    candidate     = find_first_idx(flipped, upper, &#39;r&#39;)
+    falling_hi    = (-1* candidate) -1 if candidate else None
+
+    window        = values[falling_hi:]
+    candidate     = find_first_idx(window, lower, &#39;f&#39;)
+    falling_lo    = (falling_hi + candidate) if (candidate and falling_hi) else None
+
+    if falling_hi and falling_lo:
+        d_falling = times[falling_lo]-times[falling_hi]
+        sr_f      = (lower - upper) / d_falling if d_falling &gt; 0 else np.nan
+    else:
+        sr_f      = np.nan
+    return sr_f</code></pre>
+</details>
+</dd>
+<dt id="serafin.util.find_sr_r"><code class="name flex">
+<span>def <span class="ident">find_sr_r</span></span>(<span>times: <built-in function array>, values: <built-in function array>, upper: float, lower: float) ‑> float</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def find_sr_r(times: np.array, values: np.array, upper: float, lower: float) -&gt; np.float:
+
+    rising_hi     = find_first_idx(values, upper, &#39;r&#39;)
+    rising_lo     = find_first_idx(values, lower, &#39;r&#39;)
+
+    if rising_hi and rising_lo:
+        d_rising  = times[rising_hi]-times[rising_lo]
+        sr_r      = (upper - lower) / d_rising if d_rising &gt; 0 else np.nan
+    else:
+        sr_r      = np.nan
+    return sr_r</code></pre>
+</details>
+</dd>
+<dt id="serafin.util.from_dict"><code class="name flex">
+<span>def <span class="ident">from_dict</span></span>(<span>d: dict[str, float]) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def from_dict(d: dict[str, float]) -&gt; pd.DataFrame:
+    return pd.DataFrame.from_dict({k: [v] for k,v in d.items()})</code></pre>
+</details>
+</dd>
+<dt id="serafin.util.nan_frame"><code class="name flex">
+<span>def <span class="ident">nan_frame</span></span>(<span>cols: Iterable[str]) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def nan_frame(cols: Iterable[str]) -&gt; pd.DataFrame:
+    length = len(cols)
+    return pd.DataFrame(np.full((1,length), np.NaN), columns = cols)</code></pre>
+</details>
+</dd>
+<dt id="serafin.util.offset"><code class="name flex">
+<span>def <span class="ident">offset</span></span>(<span>dcmatch: pandas.core.frame.DataFrame, offset_params: dict[str, str]) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def offset( dcmatch: pd.DataFrame, offset_params: dict[str, str]
+          ) -&gt; pd.DataFrame:
+    col_ids  = { &#39;totalOutput.sigmaOut&#39;: &#39;voff_stat&#39;
+               , &#39;totalOutput.dcOp&#39;:     &#39;voff_syst&#39;
+               } | offset_params
+
+    left     = [ cn for co,cn in col_ids.items()
+                    if co not in list(dcmatch.columns) ]
+    right    = [ c for c in col_ids.keys() if c in list(dcmatch.columns) ]
+
+    offset_  = dcmatch[right].rename(columns = col_ids)
+    offset   = pd.concat( [ offset_
+                          , pd.DataFrame( np.zeros((1,len(left)))
+                                        , columns = left)]
+                        , axis = 1
+                        , ) if left else offset_
+    return offset</code></pre>
+</details>
+</dd>
+<dt id="serafin.util.operating_point"><code class="name flex">
+<span>def <span class="ident">operating_point</span></span>(<span>dcop: pandas.core.frame.DataFrame, dcop_params: dict[str, str]) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def operating_point( dcop: pd.DataFrame, dcop_params: dict[str, str]
+                   ) -&gt; pd.DataFrame:
+    col_ids = { &#39;DUT:VDD&#39;: &#39;idd&#39;, &#39;DUT:VSS&#39;: &#39;iss&#39;
+              } | dcop_params
+    dcop    = dcop[list(col_ids.keys())].rename(columns = col_ids)
+    return dcop</code></pre>
+</details>
+</dd>
+<dt id="serafin.util.out_swing_ac"><code class="name flex">
+<span>def <span class="ident">out_swing_ac</span></span>(<span>ac: pandas.core.frame.DataFrame, A3dB: float, vdd: float = 1.8) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def out_swing_ac( ac: pd.DataFrame, A3dB: float, vdd: float = 1.8
+                 ) -&gt; pd.DataFrame:
+    cols   = [&#39;v_ih&#39;, &#39;v_il&#39;]
+    vicm   = ac[&#39;vicm&#39;].values
+    out_ac = db20(ac[&#39;OUT&#39;].values)
+    leq_0  = out_ac[vicm &lt;= 0.0]
+    geq_0  = out_ac[vicm &gt;= 0.0]
+    vil_ac = (vicm[np.argmin(np.abs(leq_0 - A3dB))] + (vdd / 2.0)
+             ).real.item() if leq_0.size &gt; 0 else 0.0
+    vih_ac = (vicm[np.argmin(np.abs(geq_0 - A3dB))] + (vdd / 2.0)
+             ).real.item() if geq_0.size &gt; 0 else 0.0
+    swing  = pd.DataFrame(np.array([[vih_ac, vil_ac ]]), columns = cols)
+    return swing</code></pre>
+</details>
+</dd>
+<dt id="serafin.util.out_swing_dc"><code class="name flex">
+<span>def <span class="ident">out_swing_dc</span></span>(<span>dc1: pandas.core.frame.DataFrame, vdd: float = 1.8, dev: float = 0.0001) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def out_swing_dc( dc1: pd.DataFrame, vdd: float = 1.8, dev: float = 1.0e-4
+                ) -&gt; pd.DataFrame:
+    cols      = [&#39;v_oh&#39;, &#39;v_ol&#39;]
+    out       = dc1[&#39;OUT&#39;].values
+    out_ideal = dc1[&#39;OUT_IDEAL&#39;].values
+    vid       = dc1[&#39;vid&#39;].values
+    out_dc    = (out - out[find_closest_idx(vid, 0.0)])
+    dev_rel   = np.abs(out_dc - out_ideal) / vdd
+    vil_idx   = np.argmin(np.abs(dev_rel[vid &lt;= 0.0] - dev))
+    vih_idx   = np.argmin(np.abs(dev_rel[vid &gt;= 0.0] - dev))
+    vol_dc    = (out_dc[vil_idx] + (vdd / 2.0)).item()
+    voh_dc    = (out_dc[vih_idx] + (vdd / 2.0)).item()
+    swing     =  pd.DataFrame(np.array([[voh_dc, vol_dc]]), columns = cols)
+    return swing</code></pre>
+</details>
+</dd>
+<dt id="serafin.util.output_current"><code class="name flex">
+<span>def <span class="ident">output_current</span></span>(<span>dc3: pandas.core.frame.DataFrame, dc4: pandas.core.frame.DataFrame) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def output_current(dc3: pd.DataFrame, dc4: pd.DataFrame) -&gt; pd.DataFrame:
+    cols      = [&#39;i_out_min&#39;, &#39;i_out_max&#39;]
+    i_out_min = dc3[&#39;DUT:O&#39;].values[0].item()
+    i_out_max = dc4[&#39;DUT:O&#39;].values[0].item()
+    current   = pd.DataFrame( np.array([[i_out_min, i_out_max]])
+                            , columns = cols )
+    return current</code></pre>
+</details>
+</dd>
+<dt id="serafin.util.output_referred_noise"><code class="name flex">
+<span>def <span class="ident">output_referred_noise</span></span>(<span>noise: pandas.core.frame.DataFrame) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def output_referred_noise(noise: pd.DataFrame) -&gt; pd.DataFrame:
+    cols  = [&#39;vn_1Hz&#39;, &#39;vn_10Hz&#39;, &#39;vn_100Hz&#39;, &#39;vn_1kHz&#39;, &#39;vn_10kHz&#39;, &#39;vn_100kHz&#39;]
+    fs    = [1e0, 1e1, 1e2, 1e3, 1e4, 1e5]
+    freq  = noise[&#39;freq&#39;].values
+    out   = noise[&#39;out&#39;].values
+    vn    = interpolate.pchip_interpolate(freq, out, fs).reshape(1,-1)
+    noise = pd.DataFrame(vn, columns = cols)
+    return noise</code></pre>
+</details>
+</dd>
+<dt id="serafin.util.rejection"><code class="name flex">
+<span>def <span class="ident">rejection</span></span>(<span>xf: pandas.core.frame.DataFrame) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def rejection(xf: pd.DataFrame) -&gt; pd.DataFrame:
+    cols     = [&#39;psrr_p&#39;, &#39;psrr_n&#39;, &#39;cmrr&#39;]
+    vid_db   = db20(xf[&#39;VID&#39;].values)
+    vicm_db  = db20(xf[&#39;VICM&#39;].values)
+    vsupp_db = db20(xf[&#39;VSUPP&#39;].values)
+    vsupn_db = db20(xf[&#39;VSUPN&#39;].values)
+    psrr_p   = (vid_db - vsupp_db)[0].item()
+    psrr_n   = (vid_db - vsupn_db)[0].item()
+    cmrr     = (vid_db - vicm_db)[0].item()
+    ratios   = pd.DataFrame( np.array([[psrr_p, psrr_n, cmrr]])
+                           , columns = cols )
+    return ratios</code></pre>
+</details>
+</dd>
+<dt id="serafin.util.repeat_values"><code class="name flex">
+<span>def <span class="ident">repeat_values</span></span>(<span>d: dict[str, float], n: int) ‑> dict[str, list[float]]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def repeat_values(d: dict[str, float], n: int) -&gt; dict[str, list[float]]:
+    return { k: n * [v] for k,v in d }</code></pre>
+</details>
+</dd>
+<dt id="serafin.util.setup_dir"><code class="name flex">
+<span>def <span class="ident">setup_dir</span></span>(<span>pdk_cfg: dict, net_scs: str, ckt_cfg: dict) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Setup a temporary simulation directory with testbench and subckt ready to go.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def setup_dir(pdk_cfg: dict, net_scs: str, ckt_cfg: dict) -&gt; str:
+    &#34;&#34;&#34;
+    Setup a temporary simulation directory with testbench and subckt ready to go.
+    &#34;&#34;&#34;
+
+    cwd    = os.path.dirname(os.path.abspath(__file__))
+    op_id  = os.path.basename(net_scs).split(&#39;.&#39;)[0]
+    usr_id = os.getlogin()
+
+    with open(net_scs, mode = &#39;r&#39;, encoding = &#39;utf-8&#39;) as net_h:
+        net = net_h.read()
+
+    includes = &#39;\n&#39;.join( [ f&#39;include &#34;{p[&#34;path&#34;]}&#34; section={p[&#34;section&#34;]}&#39;
+                            for p in pdk_cfg.get(&#39;include&#39;, {}) ] )
+
+    defaults  =  ckt_cfg.get( &#39;parameters&#39;, {}).get(&#39;testbench&#39;, {}
+                           ) | pdk_cfg.get(&#39;testbench&#39;, {})
+
+    tb_params = &#39;parameters &#39; \
+              + &#39; &#39;.join([ f&#39;{p}={v}&#39; for p,v in defaults.items() ])
+
+    op_params = &#39;parameters &#39; \
+              + &#39; &#39;.join([ f&#39;{p}={v}&#39;
+                           for p,v in ckt_cfg.get( &#39;parameters&#39;, {}
+                                                ).get( &#39;geometrical&#39;
+                                                     , {} ).items() ] )
+
+    area      = ckt_cfg.get(&#39;parameters&#39;, {}).get(&#39;area&#39;, &#39;0.0&#39;)
+    ae_params = f&#39;parameters area={area}&#39; if area != &#39;0.0&#39; else &#39;&#39;
+
+    op_pre    = pdk_cfg[&#39;devices&#39;][&#39;dcop&#39;][&#39;prefix&#39;]
+    op_suf    = pdk_cfg[&#39;devices&#39;][&#39;dcop&#39;][&#39;suffix&#39;]
+    op_par    = pdk_cfg[&#39;devices&#39;][&#39;dcop&#39;][&#39;parameters&#39;]
+    saves     = &#39;save &#39; \
+              + &#39;\\\n\t&#39;.join([ f&#39;{op_pre}*{op_suf}:{param}&#39;
+                                for param in op_par ])
+
+    subckt    = &#39;\n\n&#39;.join([ includes, tb_params, op_params, ae_params
+                            , net, saves ])
+
+    tmp_dir   = mkdtemp(prefix = f&#39;{usr_id}_{op_id}_&#39;)
+
+    with open(f&#39;{tmp_dir}/op.scs&#39;, &#39;w&#39;,  encoding = &#39;utf-8&#39;) as sub_h:
+        sub_h.write(subckt)
+
+    copyfile(f&#39;{cwd}/resource/testbench.scs&#39;, f&#39;{tmp_dir}/tb.scs&#39;)
+
+    return tmp_dir</code></pre>
+</details>
+</dd>
+<dt id="serafin.util.stability"><code class="name flex">
+<span>def <span class="ident">stability</span></span>(<span>stb: pandas.core.frame.DataFrame) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def stability(stb: pd.DataFrame) -&gt; pd.DataFrame:
+    cols      = [&#39;a_0&#39;, &#39;ugbw&#39;, &#39;pm&#39;, &#39;gm&#39;, &#39;cof&#39;]
+    loop_gain = stb[&#39;loopGain&#39;].values
+    freq      = stb[&#39;freq&#39;].values
+    gain      = db20(loop_gain)
+    phase     = np.angle(loop_gain, deg = True)
+    a0_idx    = find_first_idx(gain, 0.0, &#39;f&#39;)
+    ph0_idx   = find_first_idx(phase, 0.0, &#39;f&#39;)
+    if a0_idx and ph0_idx:
+        a0db      = gain[0].item()
+        a3db      = a0db - 3.0
+        f0db      = freq[a0_idx].real.item()
+        f0_idx    = find_closest_idx(freq, f0db)
+        pm        = phase[f0_idx].item()
+        cof       = freq[ph0_idx].real.item()
+        gm        = gain[ph0_idx].item()
+    else:
+        a0db      = np.nan
+        f0db      = np.nan
+        pm        = np.nan
+        gm        = np.nan
+        cof       = np.nan
+    stability = pd.DataFrame( np.array([[a0db, f0db, pm, gm, cof]])
+                            , columns = cols )
+    return stability</code></pre>
+</details>
+</dd>
+<dt id="serafin.util.to_dict"><code class="name flex">
+<span>def <span class="ident">to_dict</span></span>(<span>df: pandas.core.frame.DataFrame) ‑> dict[str, float]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_dict(df: pd.DataFrame) -&gt; dict[str, float]:
+    return {k: v[0] for k,v in df.to_dict(orient = &#39;list&#39;).items()}</code></pre>
+</details>
+</dd>
+<dt id="serafin.util.transient"><code class="name flex">
+<span>def <span class="ident">transient</span></span>(<span>tran: pandas.core.frame.DataFrame, vs: float = 0.5) ‑> dict[str, float]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def transient( tran: pd.DataFrame, vs: float = 0.5 ) -&gt; dict[str, float]:
+    cols       = [&#39;sr_r&#39;, &#39;sr_f&#39;, &#39;os_r&#39;, &#39;os_f&#39;]
+    time       = tran[&#39;time&#39;].values
+    out        = tran[&#39;OUT&#39;].values
+
+    idx_100    = find_closest_idx(time, 100e-9)
+    idx_090    = find_closest_idx(time, 90e-6)
+    idx_050    = find_closest_idx(time, 50e-6)
+    idx_099    = find_closest_idx(time, 99.9e-6)
+
+    rising     = out[idx_100:idx_050]
+    falling    = out[(idx_050+1):idx_099]
+
+    time_r     = time[idx_100:idx_050]
+    time_f     = time[(idx_050+1):idx_099]
+
+    lower      = (0.1 * vs) - (vs / 2.0)
+    upper      = (0.9 * vs) - (vs / 2.0)
+
+    sr_rising  = find_sr_r(time_r, rising, upper, lower)
+    sr_falling = find_sr_f(time_f, falling, upper, lower)
+
+    os_rising  = 100 * (np.max(rising) - out[idx_050]) / (out[idx_050] - out[idx_100])
+    os_falling = 100 * (np.min(falling) - out[idx_090]) / (out[idx_090] - out[idx_050])
+
+    transient  =  pd.DataFrame( np.array([[ sr_rising, sr_falling
+                                          , os_rising, os_falling]])
+                              , columns = cols )
+    return transient</code></pre>
+</details>
+</dd>
+<dt id="serafin.util.transpose_dict"><code class="name flex">
+<span>def <span class="ident">transpose_dict</span></span>(<span>ds: Iterable[dict[str, float]]) ‑> dict[str, typing.Iterable[float]]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def transpose_dict(ds: Iterable[dict[str, float]]) -&gt; dict[str, Iterable[float]]:
+    keys = {d.keys() for d in ds}
+    vals = np.array([list(d.values()) for d in ds]).T.tolist()
+    return dict(zip(keys, vals))</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="serafin" href="index.html">serafin</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="serafin.util.db20" href="#serafin.util.db20">db20</a></code></li>
+<li><code><a title="serafin.util.estimated_area" href="#serafin.util.estimated_area">estimated_area</a></code></li>
+<li><code><a title="serafin.util.find_closest_idx" href="#serafin.util.find_closest_idx">find_closest_idx</a></code></li>
+<li><code><a title="serafin.util.find_first_idx" href="#serafin.util.find_first_idx">find_first_idx</a></code></li>
+<li><code><a title="serafin.util.find_sr_f" href="#serafin.util.find_sr_f">find_sr_f</a></code></li>
+<li><code><a title="serafin.util.find_sr_r" href="#serafin.util.find_sr_r">find_sr_r</a></code></li>
+<li><code><a title="serafin.util.from_dict" href="#serafin.util.from_dict">from_dict</a></code></li>
+<li><code><a title="serafin.util.nan_frame" href="#serafin.util.nan_frame">nan_frame</a></code></li>
+<li><code><a title="serafin.util.offset" href="#serafin.util.offset">offset</a></code></li>
+<li><code><a title="serafin.util.operating_point" href="#serafin.util.operating_point">operating_point</a></code></li>
+<li><code><a title="serafin.util.out_swing_ac" href="#serafin.util.out_swing_ac">out_swing_ac</a></code></li>
+<li><code><a title="serafin.util.out_swing_dc" href="#serafin.util.out_swing_dc">out_swing_dc</a></code></li>
+<li><code><a title="serafin.util.output_current" href="#serafin.util.output_current">output_current</a></code></li>
+<li><code><a title="serafin.util.output_referred_noise" href="#serafin.util.output_referred_noise">output_referred_noise</a></code></li>
+<li><code><a title="serafin.util.rejection" href="#serafin.util.rejection">rejection</a></code></li>
+<li><code><a title="serafin.util.repeat_values" href="#serafin.util.repeat_values">repeat_values</a></code></li>
+<li><code><a title="serafin.util.setup_dir" href="#serafin.util.setup_dir">setup_dir</a></code></li>
+<li><code><a title="serafin.util.stability" href="#serafin.util.stability">stability</a></code></li>
+<li><code><a title="serafin.util.to_dict" href="#serafin.util.to_dict">to_dict</a></code></li>
+<li><code><a title="serafin.util.transient" href="#serafin.util.transient">transient</a></code></li>
+<li><code><a title="serafin.util.transpose_dict" href="#serafin.util.transpose_dict">transpose_dict</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>

@@ -158,9 +158,10 @@ def _set_paramters( op: OperationalAmplifier, sizing: pd.DataFrame
     return np.all(np.abs(sizes[cols].values - sizing[cols].values) < tol)
 
 def evaluate( op: OperationalAmplifier, sizing: pd.DataFrame = None
-            ) -> pd.DataFrame:
+            , dcop_only: bool = False ) -> pd.DataFrame:
     """
-    Evaluate the operational amplifier with a given sizing
+    Evaluate the operational amplifier with a given sizing. Optionally only
+    determines the operating point, which is faster.
     """
 
     if sizing is not None:
@@ -168,13 +169,19 @@ def evaluate( op: OperationalAmplifier, sizing: pd.DataFrame = None
         if not ret:
             warnings.warn('Clipped sizing', RuntimeWarning)
 
-    results = ps.run_all(op.session)
+    if dcop_only:
+        results = ps.run_analysis(op.session, 'dcop')
+    else:
+        results = ps.run_all(op.session)
 
     if not bool(results):
         msg = 'Simulations Failed.'
         raise(IOError(errno.EIO, os.strerror(errno.EIO), msg))
 
-    perf = extract_performance(op, results)
+    if dcop_only:
+        perf = operating_point(results['dcop'], op.dcop_params)
+    else:
+        perf = extract_performance(op, results)
 
     return perf
 

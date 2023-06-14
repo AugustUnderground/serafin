@@ -134,7 +134,11 @@ def current_sizing(op: OperationalAmplifier) -> pd.DataFrame:
 
 def _set_paramters( op: OperationalAmplifier, sizing: pd.DataFrame
                   , tol: float = 1e-10 ) -> bool:
-    cols  = sorted(list(sizing.columns))
+    cols  = sorted(list([c for c in sizing.columns
+                            if c.startswith('W')
+                            or c.startswith('L')
+                            or c.startswith('M') ]))
+    sloc  = [c for c in sizing.columns if c not in cols]
     lmin  = op.constraints['length']['min']
     lmax  = op.constraints['length']['max']
     wmin  = op.constraints['width']['min']
@@ -142,13 +146,13 @@ def _set_paramters( op: OperationalAmplifier, sizing: pd.DataFrame
     mmin  = 1
     mmax  = 42
     mins  = np.array([ lmin if c.startswith('L') else
-                       wmin if c.startswith('W') else
-                       mmin for c in cols ])
+                       ( wmin if c.startswith('W') else
+                         mmin ) for c in cols ])
     maxs  = np.array([ lmax if c.startswith('L') else
-                       wmax if c.startswith('W') else
-                       mmax for c in cols ])
+                       ( wmax if c.startswith('W') else
+                         mmax ) for c in cols ])
     vals  = np.clip(sizing[cols].values[0], mins, maxs)[None,:]
-    sizes = pd.DataFrame(vals, columns = cols)
+    sizes = pd.DataFrame(vals, columns = cols).join(sizing[sloc])
     ret   = ps.set_parameters(op.session, to_dict(sizes))
 
     if not ret:

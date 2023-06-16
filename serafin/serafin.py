@@ -174,6 +174,7 @@ def evaluate( op: OperationalAmplifier, sizing: pd.DataFrame = None
             warnings.warn('Clipped sizing', RuntimeWarning)
 
     if dcop_only:
+        _       = [ps.run_analysis(op.session, f'fb{fb}') for fb in range(1,7)]
         results = ps.run_analysis(op.session, 'dcop')
     else:
         results = ps.run_all(op.session)

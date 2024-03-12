@@ -90,7 +90,7 @@ def from_dict(d: dict[str, float]) -> pd.DataFrame:
 def to_dict(df: pd.DataFrame) -> dict[str, float]:
     return {k: v[0] for k,v in df.to_dict(orient = 'list').items()}
 
-def find_sr_r(times: np.array, values: np.array, upper: float, lower: float) -> np.float:
+def find_sr_r(times: np.array, values: np.array, upper: float, lower: float) -> float:
 
     rising_hi     = find_first_idx(values, upper, 'r')
     rising_lo     = find_first_idx(values, lower, 'r')
@@ -102,7 +102,7 @@ def find_sr_r(times: np.array, values: np.array, upper: float, lower: float) -> 
         sr_r      = np.nan
     return sr_r
 
-def find_sr_f(times: np.array, values: np.array, upper: float, lower: float) -> np.float:
+def find_sr_f(times: np.array, values: np.array, upper: float, lower: float) -> float:
     flipped       = np.flip(values)
     candidate     = find_first_idx(flipped, upper, 'r')
     falling_hi    = (-1* candidate) -1 if candidate else None

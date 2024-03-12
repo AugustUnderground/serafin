@@ -76,8 +76,8 @@ def operational_amplifier( pdk_cfg: str, ckt_cfg: str, net: str
 
     session     = ps.start_session(net_path, raw_path = raw_path)
 
-    parameters  = pdk[&#39;testbench&#39;] \
-                | pdk[&#39;defaults&#39;]  \
+    parameters  = pdk[&#39;defaults&#39;] \
+                | pdk[&#39;testbench&#39;] \
                 | ckt[&#39;parameters&#39;][&#39;testbench&#39;]
     geom_init   = ckt[&#39;parameters&#39;][&#39;geometrical&#39;]
     area_expr   = ckt[&#39;parameters&#39;][&#39;area&#39;]
@@ -113,6 +113,8 @@ def operational_amplifier( pdk_cfg: str, ckt_cfg: str, net: str
                                       , offs_params  = offs_params
                                       , performances = PERFORMANCE_PARAMETERS
                                       , )
+    ps.set_parameters(session, parameters | geom_init)
+
     return op_amp
 
 def initial_sizing(op: OperationalAmplifier) -&gt; pd.DataFrame:
@@ -159,8 +161,13 @@ def current_sizing(op: OperationalAmplifier) -&gt; pd.DataFrame:
     &#34;&#34;&#34;
     return from_dict(_current_sizing(op))
 
-def _set_paramters(op: OperationalAmplifier, sizing: pd.DataFrame) -&gt; bool:
-    cols  = sorted(list(sizing.columns))
+def _set_paramters( op: OperationalAmplifier, sizing: pd.DataFrame
+                  , tol: float = 1e-10 ) -&gt; bool:
+    cols  = sorted(list([c for c in sizing.columns
+                            if c.startswith(&#39;W&#39;)
+                            or c.startswith(&#39;L&#39;)
+                            or c.startswith(&#39;M&#39;) ]))
+    sloc  = [c for c in sizing.columns if c not in cols]
     lmin  = op.constraints[&#39;length&#39;][&#39;min&#39;]
     lmax  = op.constraints[&#39;length&#39;][&#39;max&#39;]
     wmin  = op.constraints[&#39;width&#39;][&#39;min&#39;]
@@ -168,25 +175,26 @@ def _set_paramters(op: OperationalAmplifier, sizing: pd.DataFrame) -&gt; bool:
     mmin  = 1
     mmax  = 42
     mins  = np.array([ lmin if c.startswith(&#39;L&#39;) else
-                       wmax if c.startswith(&#39;W&#39;) else
-                       mmin for c in cols ])
+                       ( wmin if c.startswith(&#39;W&#39;) else
+                         mmin ) for c in cols ])
     maxs  = np.array([ lmax if c.startswith(&#39;L&#39;) else
-                       wmax if c.startswith(&#39;W&#39;) else
-                       mmax for c in cols ])
-    vals  = np.clip(sizing.values[0], mins, maxs)[None,:]
-    sizes = to_dict(pd.DataFrame(vals, columns = cols))
-    ret   = ps.set_parameters(op.session, sizes)
+                       ( wmax if c.startswith(&#39;W&#39;) else
+                         mmax ) for c in cols ])
+    vals  = np.clip(sizing[cols].values[0], mins, maxs)[None,:]
+    sizes = pd.DataFrame(vals, columns = cols).join(sizing[sloc])
+    ret   = ps.set_parameters(op.session, to_dict(sizes))
 
     if not ret:
         msg = f&#39;spectre failed to set sizing parameters with non-zero exit code {ret}.&#39;
         raise(IOError(errno.EIO, os.strerror(errno.EIO), msg))
 
-    return sizing.equals(sizes)
+    return np.all(np.abs(sizes[cols].values - sizing[cols].values) &lt; tol)
 
 def evaluate( op: OperationalAmplifier, sizing: pd.DataFrame = None
-            ) -&gt; pd.DataFrame:
+            , dcop_only: bool = False ) -&gt; pd.DataFrame:
     &#34;&#34;&#34;
-    Evaluate the operational amplifier with a given sizing
+    Evaluate the operational amplifier with a given sizing. Optionally only
+    determines the operating point, which is faster.
     &#34;&#34;&#34;
 
     if sizing is not None:
@@ -194,13 +202,20 @@ def evaluate( op: OperationalAmplifier, sizing: pd.DataFrame = None
         if not ret:
             warnings.warn(&#39;Clipped sizing&#39;, RuntimeWarning)
 
-    results = ps.run_all(op.session)
+    if dcop_only:
+        _       = [ps.run_analysis(op.session, f&#39;fb{fb}&#39;) for fb in range(1,7)]
+        results = ps.run_analysis(op.session, &#39;dcop&#39;)
+    else:
+        results = ps.run_all(op.session)
 
     if not bool(results):
         msg = &#39;Simulations Failed.&#39;
         raise(IOError(errno.EIO, os.strerror(errno.EIO), msg))
 
-    perf = extract_performance(op, results)
+    if dcop_only:
+        perf = operating_point(results[&#39;dcop&#39;], op.dcop_params)
+    else:
+        perf = extract_performance(op, results)
 
     return perf
 
@@ -260,18 +275,20 @@ def extract_performance( op: OperationalAmplifier
 </details>
 </dd>
 <dt id="serafin.serafin.evaluate"><code class="name flex">
-<span>def <span class="ident">evaluate</span></span>(<span>op: <a title="serafin.serafin.OperationalAmplifier" href="#serafin.serafin.OperationalAmplifier">OperationalAmplifier</a>, sizing: pandas.core.frame.DataFrame = None) ‑> pandas.core.frame.DataFrame</span>
+<span>def <span class="ident">evaluate</span></span>(<span>op: <a title="serafin.serafin.OperationalAmplifier" href="#serafin.serafin.OperationalAmplifier">OperationalAmplifier</a>, sizing: pandas.core.frame.DataFrame = None, dcop_only: bool = False) ‑> pandas.core.frame.DataFrame</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Evaluate the operational amplifier with a given sizing</p></div>
+<div class="desc"><p>Evaluate the operational amplifier with a given sizing. Optionally only
+determines the operating point, which is faster.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def evaluate( op: OperationalAmplifier, sizing: pd.DataFrame = None
-            ) -&gt; pd.DataFrame:
+            , dcop_only: bool = False ) -&gt; pd.DataFrame:
     &#34;&#34;&#34;
-    Evaluate the operational amplifier with a given sizing
+    Evaluate the operational amplifier with a given sizing. Optionally only
+    determines the operating point, which is faster.
     &#34;&#34;&#34;
 
     if sizing is not None:
@@ -279,13 +296,20 @@ def extract_performance( op: OperationalAmplifier
         if not ret:
             warnings.warn(&#39;Clipped sizing&#39;, RuntimeWarning)
 
-    results = ps.run_all(op.session)
+    if dcop_only:
+        _       = [ps.run_analysis(op.session, f&#39;fb{fb}&#39;) for fb in range(1,7)]
+        results = ps.run_analysis(op.session, &#39;dcop&#39;)
+    else:
+        results = ps.run_all(op.session)
 
     if not bool(results):
         msg = &#39;Simulations Failed.&#39;
         raise(IOError(errno.EIO, os.strerror(errno.EIO), msg))
 
-    perf = extract_performance(op, results)
+    if dcop_only:
+        perf = operating_point(results[&#39;dcop&#39;], op.dcop_params)
+    else:
+        perf = extract_performance(op, results)
 
     return perf</code></pre>
 </details>
@@ -368,8 +392,8 @@ def extract_performance( op: OperationalAmplifier
 
     session     = ps.start_session(net_path, raw_path = raw_path)
 
-    parameters  = pdk[&#39;testbench&#39;] \
-                | pdk[&#39;defaults&#39;]  \
+    parameters  = pdk[&#39;defaults&#39;] \
+                | pdk[&#39;testbench&#39;] \
                 | ckt[&#39;parameters&#39;][&#39;testbench&#39;]
     geom_init   = ckt[&#39;parameters&#39;][&#39;geometrical&#39;]
     area_expr   = ckt[&#39;parameters&#39;][&#39;area&#39;]
@@ -405,6 +429,8 @@ def extract_performance( op: OperationalAmplifier
                                       , offs_params  = offs_params
                                       , performances = PERFORMANCE_PARAMETERS
                                       , )
+    ps.set_parameters(session, parameters | geom_init)
+
     return op_amp</code></pre>
 </details>
 </dd>

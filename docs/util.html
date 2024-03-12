@@ -97,6 +97,15 @@ def transpose_dict(ds: Iterable[dict[str, float]]) -&gt; dict[str, Iterable[floa
 def find_closest_idx(array: np.array, value: float) -&gt; int:
     return np.argmin(np.abs(array - value), axis = len(array.shape) - 1)
 
+def find_first_idx(array: np.array, value: float, edge: str) -&gt; Union[int, None]:
+    if edge == &#39;r&#39;:
+        indices = np.argwhere(array &gt; value)
+    elif edge == &#39;f&#39;:
+        indices = np.argwhere(array &lt; value)
+    else:
+        indices = np.empty(0)
+    return np.min(indices).item() if np.size(indices) else None
+
 def db20(x: Union[float, np.array]) -&gt; Union[float, np.array]:
     return np.log10(np.abs(x)) * 20.0
 
@@ -109,6 +118,34 @@ def from_dict(d: dict[str, float]) -&gt; pd.DataFrame:
 
 def to_dict(df: pd.DataFrame) -&gt; dict[str, float]:
     return {k: v[0] for k,v in df.to_dict(orient = &#39;list&#39;).items()}
+
+def find_sr_r(times: np.array, values: np.array, upper: float, lower: float) -&gt; float:
+
+    rising_hi     = find_first_idx(values, upper, &#39;r&#39;)
+    rising_lo     = find_first_idx(values, lower, &#39;r&#39;)
+
+    if rising_hi and rising_lo:
+        d_rising  = times[rising_hi]-times[rising_lo]
+        sr_r      = (upper - lower) / d_rising if d_rising &gt; 0 else np.nan
+    else:
+        sr_r      = np.nan
+    return sr_r
+
+def find_sr_f(times: np.array, values: np.array, upper: float, lower: float) -&gt; float:
+    flipped       = np.flip(values)
+    candidate     = find_first_idx(flipped, upper, &#39;r&#39;)
+    falling_hi    = (-1* candidate) -1 if candidate else None
+
+    window        = values[falling_hi:]
+    candidate     = find_first_idx(window, lower, &#39;f&#39;)
+    falling_lo    = (falling_hi + candidate) if (candidate and falling_hi) else None
+
+    if falling_hi and falling_lo:
+        d_falling = times[falling_lo]-times[falling_hi]
+        sr_f      = (lower - upper) / d_falling if d_falling &gt; 0 else np.nan
+    else:
+        sr_f      = np.nan
+    return sr_f
 
 PERFORMANCE_PARAMETERS: dict[str,str] = { &#39;area&#39;:       &#39;Estimated Area&#39;
                                         , &#39;a_0&#39;:        &#39;DC Loop Gain&#39;
@@ -165,15 +202,22 @@ def stability(stb: pd.DataFrame) -&gt; pd.DataFrame:
     freq      = stb[&#39;freq&#39;].values
     gain      = db20(loop_gain)
     phase     = np.angle(loop_gain, deg = True)
-    a0db      = gain[0].item()
-    a3db      = a0db - 3.0
-    a0_idx    = find_closest_idx(gain, 0.0)
-    f0db      = freq[a0_idx].real.item()
-    f0_idx    = find_closest_idx(freq, f0db)
-    ph0_idx   = find_closest_idx(phase, 0.0)
-    pm        = phase[f0_idx].item()
-    cof       = freq[ph0_idx].real.item()
-    gm        = gain[ph0_idx].item()
+    a0_idx    = find_first_idx(gain, 0.0, &#39;f&#39;)
+    ph0_idx   = find_first_idx(phase, 0.0, &#39;f&#39;)
+    if a0_idx and ph0_idx:
+        a0db      = gain[0].item()
+        a3db      = a0db - 3.0
+        f0db      = freq[a0_idx].real.item()
+        f0_idx    = find_closest_idx(freq, f0db)
+        pm        = phase[f0_idx].item()
+        cof       = freq[ph0_idx].real.item()
+        gm        = gain[ph0_idx].item()
+    else:
+        a0db      = np.nan
+        f0db      = np.nan
+        pm        = np.nan
+        gm        = np.nan
+        cof       = np.nan
     stability = pd.DataFrame( np.array([[a0db, f0db, pm, gm, cof]])
                             , columns = cols )
     return stability
@@ -191,20 +235,14 @@ def transient( tran: pd.DataFrame, vs: float = 0.5 ) -&gt; dict[str, float]:
     rising     = out[idx_100:idx_050]
     falling    = out[(idx_050+1):idx_099]
 
+    time_r     = time[idx_100:idx_050]
+    time_f     = time[(idx_050+1):idx_099]
+
     lower      = (0.1 * vs) - (vs / 2.0)
     upper      = (0.9 * vs) - (vs / 2.0)
 
-    p1_rising  = time[find_closest_idx(rising, lower)]
-    p2_rising  = time[find_closest_idx(rising, upper)]
-    d_rising   = p2_rising - p1_rising
-
-    sr_rising  = (upper - lower) / d_rising if d_rising &gt; 0 else 0.0
-
-    p1_falling = time[find_closest_idx(falling, upper)]
-    p2_falling = time[find_closest_idx(falling, lower)]
-    d_falling  = p2_falling - p1_falling
-
-    sr_falling = (lower - upper) / d_falling if d_falling &gt; 0 else 0.0
+    sr_rising  = find_sr_r(time_r, rising, upper, lower)
+    sr_falling = find_sr_f(time_f, falling, upper, lower)
 
     os_rising  = 100 * (np.max(rising) - out[idx_050]) / (out[idx_050] - out[idx_100])
     os_falling = 100 * (np.min(falling) - out[idx_090]) / (out[idx_090] - out[idx_050])
@@ -332,6 +370,73 @@ def estimated_area(expr: str, sizing: pd.DataFrame) -&gt; pd.DataFrame:
 </summary>
 <pre><code class="python">def find_closest_idx(array: np.array, value: float) -&gt; int:
     return np.argmin(np.abs(array - value), axis = len(array.shape) - 1)</code></pre>
+</details>
+</dd>
+<dt id="serafin.util.find_first_idx"><code class="name flex">
+<span>def <span class="ident">find_first_idx</span></span>(<span>array: <built-in function array>, value: float, edge: str) ‑> Optional[int]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def find_first_idx(array: np.array, value: float, edge: str) -&gt; Union[int, None]:
+    if edge == &#39;r&#39;:
+        indices = np.argwhere(array &gt; value)
+    elif edge == &#39;f&#39;:
+        indices = np.argwhere(array &lt; value)
+    else:
+        indices = np.empty(0)
+    return np.min(indices).item() if np.size(indices) else None</code></pre>
+</details>
+</dd>
+<dt id="serafin.util.find_sr_f"><code class="name flex">
+<span>def <span class="ident">find_sr_f</span></span>(<span>times: <built-in function array>, values: <built-in function array>, upper: float, lower: float) ‑> float</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def find_sr_f(times: np.array, values: np.array, upper: float, lower: float) -&gt; float:
+    flipped       = np.flip(values)
+    candidate     = find_first_idx(flipped, upper, &#39;r&#39;)
+    falling_hi    = (-1* candidate) -1 if candidate else None
+
+    window        = values[falling_hi:]
+    candidate     = find_first_idx(window, lower, &#39;f&#39;)
+    falling_lo    = (falling_hi + candidate) if (candidate and falling_hi) else None
+
+    if falling_hi and falling_lo:
+        d_falling = times[falling_lo]-times[falling_hi]
+        sr_f      = (lower - upper) / d_falling if d_falling &gt; 0 else np.nan
+    else:
+        sr_f      = np.nan
+    return sr_f</code></pre>
+</details>
+</dd>
+<dt id="serafin.util.find_sr_r"><code class="name flex">
+<span>def <span class="ident">find_sr_r</span></span>(<span>times: <built-in function array>, values: <built-in function array>, upper: float, lower: float) ‑> float</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def find_sr_r(times: np.array, values: np.array, upper: float, lower: float) -&gt; float:
+
+    rising_hi     = find_first_idx(values, upper, &#39;r&#39;)
+    rising_lo     = find_first_idx(values, lower, &#39;r&#39;)
+
+    if rising_hi and rising_lo:
+        d_rising  = times[rising_hi]-times[rising_lo]
+        sr_r      = (upper - lower) / d_rising if d_rising &gt; 0 else np.nan
+    else:
+        sr_r      = np.nan
+    return sr_r</code></pre>
 </details>
 </dd>
 <dt id="serafin.util.from_dict"><code class="name flex">
@@ -602,15 +707,22 @@ def estimated_area(expr: str, sizing: pd.DataFrame) -&gt; pd.DataFrame:
     freq      = stb[&#39;freq&#39;].values
     gain      = db20(loop_gain)
     phase     = np.angle(loop_gain, deg = True)
-    a0db      = gain[0].item()
-    a3db      = a0db - 3.0
-    a0_idx    = find_closest_idx(gain, 0.0)
-    f0db      = freq[a0_idx].real.item()
-    f0_idx    = find_closest_idx(freq, f0db)
-    ph0_idx   = find_closest_idx(phase, 0.0)
-    pm        = phase[f0_idx].item()
-    cof       = freq[ph0_idx].real.item()
-    gm        = gain[ph0_idx].item()
+    a0_idx    = find_first_idx(gain, 0.0, &#39;f&#39;)
+    ph0_idx   = find_first_idx(phase, 0.0, &#39;f&#39;)
+    if a0_idx and ph0_idx:
+        a0db      = gain[0].item()
+        a3db      = a0db - 3.0
+        f0db      = freq[a0_idx].real.item()
+        f0_idx    = find_closest_idx(freq, f0db)
+        pm        = phase[f0_idx].item()
+        cof       = freq[ph0_idx].real.item()
+        gm        = gain[ph0_idx].item()
+    else:
+        a0db      = np.nan
+        f0db      = np.nan
+        pm        = np.nan
+        gm        = np.nan
+        cof       = np.nan
     stability = pd.DataFrame( np.array([[a0db, f0db, pm, gm, cof]])
                             , columns = cols )
     return stability</code></pre>
@@ -651,20 +763,14 @@ def estimated_area(expr: str, sizing: pd.DataFrame) -&gt; pd.DataFrame:
     rising     = out[idx_100:idx_050]
     falling    = out[(idx_050+1):idx_099]
 
+    time_r     = time[idx_100:idx_050]
+    time_f     = time[(idx_050+1):idx_099]
+
     lower      = (0.1 * vs) - (vs / 2.0)
     upper      = (0.9 * vs) - (vs / 2.0)
 
-    p1_rising  = time[find_closest_idx(rising, lower)]
-    p2_rising  = time[find_closest_idx(rising, upper)]
-    d_rising   = p2_rising - p1_rising
-
-    sr_rising  = (upper - lower) / d_rising if d_rising &gt; 0 else 0.0
-
-    p1_falling = time[find_closest_idx(falling, upper)]
-    p2_falling = time[find_closest_idx(falling, lower)]
-    d_falling  = p2_falling - p1_falling
-
-    sr_falling = (lower - upper) / d_falling if d_falling &gt; 0 else 0.0
+    sr_rising  = find_sr_r(time_r, rising, upper, lower)
+    sr_falling = find_sr_f(time_f, falling, upper, lower)
 
     os_rising  = 100 * (np.max(rising) - out[idx_050]) / (out[idx_050] - out[idx_100])
     os_falling = 100 * (np.min(falling) - out[idx_090]) / (out[idx_090] - out[idx_050])
@@ -711,6 +817,9 @@ def estimated_area(expr: str, sizing: pd.DataFrame) -&gt; pd.DataFrame:
 <li><code><a title="serafin.util.db20" href="#serafin.util.db20">db20</a></code></li>
 <li><code><a title="serafin.util.estimated_area" href="#serafin.util.estimated_area">estimated_area</a></code></li>
 <li><code><a title="serafin.util.find_closest_idx" href="#serafin.util.find_closest_idx">find_closest_idx</a></code></li>
+<li><code><a title="serafin.util.find_first_idx" href="#serafin.util.find_first_idx">find_first_idx</a></code></li>
+<li><code><a title="serafin.util.find_sr_f" href="#serafin.util.find_sr_f">find_sr_f</a></code></li>
+<li><code><a title="serafin.util.find_sr_r" href="#serafin.util.find_sr_r">find_sr_r</a></code></li>
 <li><code><a title="serafin.util.from_dict" href="#serafin.util.from_dict">from_dict</a></code></li>
 <li><code><a title="serafin.util.nan_frame" href="#serafin.util.nan_frame">nan_frame</a></code></li>
 <li><code><a title="serafin.util.offset" href="#serafin.util.offset">offset</a></code></li>
